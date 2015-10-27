@@ -4,12 +4,16 @@ import uuid
 
 class Event(object):
     
-    def __init__(self, event_namespace, event_name, params = None):
+    def __init__(self, event_namespace, event_name, last_event_id = None, params = None):
         self.event_id = uuid.uuid1()
         self.create_time = time.time()
         self.event_namespace = event_namespace
         self.event_name = event_name
+        self.last_event_id = last_event_id 
         self._params = params
+
+        if None == self._params:
+            self._params = dict()
 
     def getParam(self, key):
         if None != self._params and key in self._params:
@@ -18,8 +22,6 @@ class Event(object):
             return None
 
     def setParam(self, key, value):
-        if None == self._params:
-            self._params = dict()
         self._params[key] = value
 
     def getParams(self):

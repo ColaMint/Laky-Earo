@@ -10,24 +10,27 @@ class EventHandler(object):
         self.event_name = event_name
         self.event_handler_func = event_handler_func 
 
-class EventHandlerExecutor(object):
-
-    def __init__(self, event_handler, event):
-        self.event_handler = event_handler
-        self.event = event
-        self.begin_time = None 
-        self.end_time = None 
-
     def execute(self, event):
-       try:
-           final_params = build_func_params(self.event_handler.event_handler_func, event.getParams())
-           self.begin_time = time.time() 
-           rtn_params = self.event_handler.event_handler_func(*final_params)
-           self.end_time = time.time() 
-       except Exception as e:
-           pass
-       finally:
-           pass
+        event_handler_runtime = EventHandlerRuntime(event = event)
+        try:
+           event_handler_runtime.handler_params = build_func_params(self.event_handler_func, event.getParams())
+           event_handler_runtime.begin_time = time.time() 
+           event_handler_runtime.rtn_params = self.event_handler_func(*event_handler_runtime.handler_params)
+           event_handler_runtime.end_time = time.time() 
+        except Exception as e:
+            event_handler_runtime.exception = e
+        finally:
+            return event_handler_runtime
+
+class EventHandlerRuntime(object):
+
+    def __init__(self, event, handler_params = None, rtn_params = None, begin_time = None, end_time = None, exception = None):
+        self.event = event
+        self.handler_params = handler_params 
+        self.rtn_params = rtn_params 
+        self.begin_time = begin_time 
+        self.end_time = end_time 
+        self.exception = exception 
 
 def build_func_params(fn, params):
     arg_spec = inspect.getargspec(fn)
