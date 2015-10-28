@@ -4,12 +4,11 @@ import uuid
 
 class Event(object):
     
-    def __init__(self, event_namespace, event_name, last_event_id = None, params = None):
+    def __init__(self, event_namespace, event_name, params = None):
         self.event_id = uuid.uuid1()
         self.create_time = time.time()
         self.event_namespace = event_namespace
         self.event_name = event_name
-        self.last_event_id = last_event_id 
         self._params = params
 
         if None == self._params:
