@@ -12,14 +12,23 @@ class EventHandler(object):
         self.event_handler_func = event_handler_func 
 
     def execute(self, event):
-        event_handler_runtime = EventHandlerRuntime(event = event)
+        event_handler_runtime = EventHandlerRuntime(in_event = event)
         try:
-           event_handler_runtime.handler_params = self.__build_func_params(self.event_handler_func, event.getParams())
-           event_handler_runtime.begin_time = time.time() 
-           event_handler_runtime.result_event = self.event_handler_func(*event_handler_runtime.handler_params)
-           event_handler_runtime.end_time = time.time() 
+            event_handler_runtime.setHandlerParams(
+                self.__build_func_params(
+                    self.event_handler_func, 
+                    event.getParams()
+                )
+            )
+            event_handler_runtime.markBeginTime()
+            event_handler_runtime.setOutEvent(
+                self.event_handler_func(
+                    *event_handler_runtime.handler_params
+                )
+            )
+            event_handler_runtime.markEndTime() 
         except Exception as e:
-            event_handler_runtime.exception = e
+            event_handler_runtime.setException(e)
         finally:
             return event_handler_runtime
 
@@ -52,19 +61,70 @@ class EventHandler(object):
 
 class EventHandlerRuntime(object):
 
-    def __init__(self, event, handler_params = None, result_event = None, begin_time = None, end_time = None, exception = None):
-        self.event = event
-        self.handler_params = handler_params 
-        self.result_event = result_event 
-        self.begin_time = begin_time 
-        self.end_time = end_time 
-        self.exception = exception 
+    def __init__(self, handler_params = None, in_event = None, out_event = None, begin_time = None, end_time = None, exception = None):
+        self.__handler_params = handler_params 
+        self.__in_event = in_event
+        self.__out_event = out_event 
+        self.__begin_time = begin_time 
+        self.__end_time = end_time 
+        self.__exception = exception 
 
-    def getEventId(self):
-        if None == self.event:
+    def getHandlerParams(self):
+        return self.__handler_params
+
+    def setHandlerParams(self, handler_params):
+        self.__handler_params = handler_params
+
+    def getInEvent(self):
+        return self.__in_event
+
+    def setInEvent(self, in_event):
+        self.__in_event = in_event
+
+    def getInEventId(self):
+        if None == self.__in_event:
             return None
         else:
-            return event.event_id
+            return self.__in_event.event_id
+
+    def getOutEvent(self):
+        return self.__out_event
+
+    def setOutEvent(self, out_event):
+        self.__out_event = out_event
+
+    def getOutEventId(self):
+        if None == self.__out_event:
+            return None
+        else:
+            return self.__out_event.event_id
+
+    def markBeginTime(self):
+        self.__begin_time = time.time() 
+
+    def getBeginTime(self):
+        return self.__begin_time
+
+    def markEndTime(self):
+        self.__end_time = time.time() 
+
+    def getEndTime(self):
+        return self.__end_time
+
+    def getRuntimeDuration(self):
+        if None == self.__begin_time or None == self.__end_time:
+            return -1
+        else:
+            return self.__end_time - self.__begin_time 
+
+    def isSuccessful(self):
+        return None == self.__exceptionp
+
+    def setException(self, exception):
+        self.__exception = exception
+
+    def getException(self):
+        return self.__exception
 
 def event_handler(events):
     def decorator(func):
