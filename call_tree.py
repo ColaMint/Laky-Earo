@@ -51,8 +51,8 @@ class CallTreeRoot(CallTreeNode):
 class CallTree(object):
 
     def  __init__(self, source_event):
-       self.__root = CallTreeRoot(source_event) 
-       self.__node_map = {self.__root.getOutEventId(): self.__root}
+        self.__root = CallTreeRoot(source_event) 
+        self.__node_map = {self.__root.getOutEventId(): self.__root}
 
     def __findParent(self, in_event_id):
         return self.__node_map.get(in_event_id, None)
@@ -65,3 +65,6 @@ class CallTree(object):
             new_node = CallTreeNode(parent_node, event_handler_runtime)
             self.__node_map[new_node.getOutEventId()] = new_node
             return True
+
+    def getRoot(self):
+        return self.__root

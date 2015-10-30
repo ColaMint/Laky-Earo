@@ -1,12 +1,20 @@
 # -*- coding:utf-8 -*-  
 import time
 import inspect
-from event import Event
+from event import Event, EventBuilder, getCurrentEvent, setCurrentEvent
 from event_handler import EventHandler
+import threading
+
+    
+class MissingCurrentEvent(Exception):
+
+    def __str__(self):
+        return 'Missing current event.'
 
 class EventHandler(object):
     
-    def __init__(self, event_namespace, event_name, event_handler_func):
+    def __init__(self, event_manager, event_namespace, event_name, event_handler_func):
+        self.event_manager = event_manager
         self.event_namespace = event_namespace
         self.event_name = event_name
         self.event_handler_func = event_handler_func 
@@ -14,6 +22,7 @@ class EventHandler(object):
     def execute(self, event):
         event_handler_runtime = EventHandlerRuntime(in_event = event)
         try:
+            setCurrentEvent(event)
             event_handler_runtime.setHandlerParams(
                 self.__build_func_params(
                     self.event_handler_func, 
@@ -129,10 +138,15 @@ class EventHandlerRuntime(object):
 def event_handler(events):
     def decorator(func):
         def wrapper(*args, **kw):
-            warpper.event_handlers = dict()
-            for event in events:
-                event_handler = EventHandler(event.event_namespace, event_name, wrapper)
-                warpper.event_handlers.append(event_handler)
-            return func(*args, **argkw)
+            result = func(*args, **argkw)
+            if isinstance(result, EventBuilder):
+                current_event = getCurrentEvent()
+                return result.build(current_event.source_id, current_event.event_namespace)
+            else:
+                return None 
+        warpper.event_handlers = dict()
+        for event in events:
+            event_handler = EventHandler(event.event_namespace, event_name, wrapper)
+            warpper.event_handlers.append(event_handler)
         return wrapper
     return decorator

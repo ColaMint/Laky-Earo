@@ -4,35 +4,51 @@ import uuid
 
 class Event(object):
     
-    def __init__(self, event_namespace, event_name, params = None):
+    def __init__(self, source_id, event_namespace, event_name, params = None):
+        self.source_id = source_id 
         self.event_id = uuid.uuid1()
         self.create_time = time.time()
         self.event_namespace = event_namespace
         self.event_name = event_name
-        self._params = params
+        self.__params = params
 
         if None == self._params:
-            self._params = dict()
+            self.__params = dict()
 
     def getParam(self, key):
-        if None != self._params and key in self._params:
-            return self._params[key]
+        if None != self.__params and key in self.__params:
+            return self.__params[key]
         else:
             return None
 
     def setParam(self, key, value):
-        self._params[key] = value
+        self.__params[key] = value
 
     def getParams(self):
-        return tuple(self._params)
+        return self.__params
 
-if __name__ == '__main__':
-    event = Event('Laky', 'Test_Event', {'k1': 'v1'})
-    print 'event_id : %s' % event.event_id
-    print 'create_time : %s' % event.create_time
-    print 'event_namespace : %s' % event.event_namespace 
-    print 'event_name : %s' % event.event_name
-    print 'params `k1` : %s' % event.getParam('k1')
-    print 'params `k2` : %s' % event.getParam('k2')
-    event.setParam('k2', 'v2')
-    print 'params `k2` : %s' % event.getParam('k2')
+class SourceEvent(Event):
+
+    def __init__(self, event_namespace, event_name, params = None):
+        super().__init__(uuid.uuid1(), event_namespace, event_name, params)
+
+class EventBuilder(object):
+
+    def __init__(self, event_name, params = None):
+        self.__event_name = event_name
+        self.__params = params
+
+    def build(self, source_id, event_namespace):
+        return Event(source_id, event_namespace, self.__event_name, self.__params)
+
+local_event = threading.local() 
+
+def setCurrentEvent(event):
+    local_event.event = local_event
+
+def getCurrentEvent(event):
+    event = getattr(local_event, 'event', None)
+    if not isinstance(event, Event):
+        raise MissingCurrentEvent()
+    else:
+        return event
