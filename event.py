@@ -1,6 +1,8 @@
 # -*- coding:utf-8 -*-  
 import time
 import uuid
+from utils import local
+from exception import MissingCurrentEvent
 
 class Event(object):
     
@@ -15,17 +17,23 @@ class Event(object):
         if None == self._params:
             self.__params = dict()
 
-    def getParam(self, key):
+    def get_params(self, key):
         if None != self.__params and key in self.__params:
             return self.__params[key]
         else:
             return None
 
-    def setParam(self, key, value):
+    def set_params(self, key, value):
         self.__params[key] = value
 
-    def getParams(self):
+    def get_params(self):
         return self.__params
+
+    def get_event_key(self):
+        if not self.hasattr('__event_key'):
+            self.__event_key = genEventKey(self.event_namespace, self.event_name)
+        return self.__event_key
+            
 
 class SourceEvent(Event):
 
@@ -41,14 +49,17 @@ class EventBuilder(object):
     def build(self, source_id, event_namespace):
         return Event(source_id, event_namespace, self.__event_name, self.__params)
 
-local_event = threading.local() 
 
-def setCurrentEvent(event):
-    local_event.event = local_event
+def set_current_event(event):
+    local.event = local_event
 
-def getCurrentEvent(event):
-    event = getattr(local_event, 'event', None)
+def get_current_event():
+    event = Local.event
     if not isinstance(event, Event):
         raise MissingCurrentEvent()
     else:
         return event
+
+def gen_event_key(event_namespace, event_name):
+    return '%s#@#%s' % (event_namespace, event_name)
+

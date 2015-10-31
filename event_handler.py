@@ -1,15 +1,9 @@
 # -*- coding:utf-8 -*-  
 import time
 import inspect
-from event import Event, EventBuilder, getCurrentEvent, setCurrentEvent
+from event import Event, EventBuilder, getCurrentEvent, setCurrentEvent, getEventKey
 from event_handler import EventHandler
 import threading
-
-    
-class MissingCurrentEvent(Exception):
-
-    def __str__(self):
-        return 'Missing current event.'
 
 class EventHandler(object):
     
@@ -23,21 +17,21 @@ class EventHandler(object):
         event_handler_runtime = EventHandlerRuntime(in_event = event)
         try:
             setCurrentEvent(event)
-            event_handler_runtime.setHandlerParams(
+            event_handler_runtime.set_handler_params(
                 self.__build_func_params(
                     self.event_handler_func, 
                     event.getParams()
                 )
             )
-            event_handler_runtime.markBeginTime()
-            event_handler_runtime.setOutEvent(
+            event_handler_runtime.mark_begin_time()
+            event_handler_runtime.set_out_event(
                 self.event_handler_func(
                     *event_handler_runtime.handler_params
                 )
             )
-            event_handler_runtime.markEndTime() 
+            event_handler_runtime.mark_end_time() 
         except Exception as e:
-            event_handler_runtime.setException(e)
+            event_handler_runtime.set_exception(e)
         finally:
             return event_handler_runtime
 
@@ -67,6 +61,19 @@ class EventHandler(object):
                             meet_default = True
                             final_params.append(arg_spec.defaults)
             return tuple(final_params)
+    def get_event_key(self):
+        if not self.hasattr('__event_key'):
+            self.__event_key = genEventKey(self.event_namespace, self.event_name)
+        return self.__event_key
+
+    def get_event_handler_key(self):
+        if not self.hasattr('__event_key'):
+            self.__event_handler_key = '%s#@#%s#@#%s#@#%s' % (
+                    self.event_namespace, self.event_name, 
+                    self.event_handler_func.__module__, 
+                    self.event_handler_func.__name__
+                )
+        return self.__event_handler_key
 
 class EventHandlerRuntime(object):
 
@@ -78,61 +85,61 @@ class EventHandlerRuntime(object):
         self.__end_time = end_time 
         self.__exception = exception 
 
-    def getHandlerParams(self):
+    def get_handler_params(self):
         return self.__handler_params
 
-    def setHandlerParams(self, handler_params):
+    def set_handler_params(self, handler_params):
         self.__handler_params = handler_params
 
-    def getInEvent(self):
+    def get_in_event(self):
         return self.__in_event
 
-    def setInEvent(self, in_event):
+    def set_in_event(self, in_event):
         self.__in_event = in_event
 
-    def getInEventId(self):
+    def get_in_event_id(self):
         if None == self.__in_event:
             return None
         else:
             return self.__in_event.event_id
 
-    def getOutEvent(self):
+    def get_out_event(self):
         return self.__out_event
 
-    def setOutEvent(self, out_event):
+    def set_out_event(self, out_event):
         self.__out_event = out_event
 
-    def getOutEventId(self):
+    def get_out_event_id(self):
         if None == self.__out_event:
             return None
         else:
             return self.__out_event.event_id
 
-    def markBeginTime(self):
+    def mark_begin_time(self):
         self.__begin_time = time.time() 
 
-    def getBeginTime(self):
+    def get_begin_time(self):
         return self.__begin_time
 
-    def markEndTime(self):
+    def mark_end_time(self):
         self.__end_time = time.time() 
 
-    def getEndTime(self):
+    def get_end_time(self):
         return self.__end_time
 
-    def getRuntimeDuration(self):
+    def get_runtime_duration(self):
         if None == self.__begin_time or None == self.__end_time:
             return -1
         else:
             return self.__end_time - self.__begin_time 
 
-    def isSuccessful(self):
+    def is_successful(self):
         return None == self.__exceptionp
 
-    def setException(self, exception):
+    def set_exception(self, exception):
         self.__exception = exception
 
-    def getException(self):
+    def get_exception(self):
         return self.__exception
 
 def event_handler(events):
@@ -144,9 +151,9 @@ def event_handler(events):
                 return result.build(current_event.source_id, current_event.event_namespace)
             else:
                 return None 
-        warpper.event_handlers = dict()
+        warpper.__event_handlers__ = dict()
         for event in events:
             event_handler = EventHandler(event.event_namespace, event_name, wrapper)
-            warpper.event_handlers.append(event_handler)
+            warpper.__event_handlers__.append(event_handler)
         return wrapper
     return decorator
