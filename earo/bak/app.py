@@ -1,5 +1,5 @@
-#!/usr/bin/python
 # -*- coding:utf-8 -*-
+
 from configure import Configure
 from util.local import Local
 from broker import Broker
