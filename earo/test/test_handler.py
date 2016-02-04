@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 from earo.event import Event, Field
-from earo.handler import Handler
+from earo.handler import Handler, NoEmittion
 import unittest
 
 names = []
@@ -31,20 +31,7 @@ class TestHandler(unittest.TestCase):
             names.append(event.name)
 
         with self.assertRaises(TypeError):
-            handler = Handler(AEvent, foo)
-
-    def test_handler_name(self):
-
-        names = []
-
-        class AEvent(Event):
-            name = Field(str, 'earo')
-
-        def foo(context, event):
-            names.append(event.name)
-
-        handler = Handler(AEvent, foo)
-        self.assertEqual('__main__.foo', handler.name)
+            Handler(AEvent, foo)
 
     def test_handle_excepted_event(self):
 
@@ -103,6 +90,21 @@ class TestHandler(unittest.TestCase):
         self.assertIsNotNone(handler_runtime.exception)
         self.assertFalse(handler_runtime.succeeded)
         self.assertGreater(handler_runtime.time_cost, 0)
+
+    def test_no_emittion(self):
+
+        class AEvent(Event):
+            pass
+
+        class BEvent(Event):
+            pass
+
+        def foo(context, event):
+            return NoEmittion(BEvent, 'test msg')
+
+        handler = Handler(AEvent, foo, BEvent)
+        handler_runtime = handler.handle(None, AEvent())
+        self.assertEqual(handler_runtime.why_no_emittion(BEvent), 'test msg')
 
 if __name__ == '__main__':
     unittest.main()

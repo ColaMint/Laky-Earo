@@ -12,6 +12,5 @@ class Context(object):
     def process(self):
         self.process_flow = self.processor.process(self.source_event)
 
-    def emit(self, event):
-        self.processor.emit(event)
-
+    def find_event(self, event_cls, return_first=True):
+        return self.process_flow.find_event(event_cls, return_first)

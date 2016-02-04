@@ -4,6 +4,16 @@ import inspect
 import traceback
 from datetime import datetime
 
+class NoEmittion(object):
+
+    def __init__(self, event_cls, msg):
+        self.event_cls = event_cls
+        self.msg       = msg
+
+class Emittion(object):
+
+    def __init__(self, event):
+        self.event = event
 
 class HandlerRuntime(object):
 
@@ -13,6 +23,8 @@ class HandlerRuntime(object):
         self.begin_time = None
         self.end_time = None
         self.exception = None
+        self.no_emittion = {}
+        self.emittion = []
 
     @property
     def succeeded(self):
@@ -26,6 +38,16 @@ class HandlerRuntime(object):
 
     def record_exception(self, exception):
         self.exception = exception
+
+    def record_emittion(self, emittion):
+        self.emittion.append(emittion.event)
+
+    def record_no_emittion(self, no_emittion):
+        self.no_emittion[no_emittion.event_cls] = no_emittion.msg
+
+    def why_no_emittion(self, event_cls):
+        return self.no_emittion[event_cls] \
+            if event_cls in self.no_emittion else None
 
     @property
     def time_cost(self):
@@ -61,7 +83,14 @@ class Handler(object):
         handler_runtime = HandlerRuntime(self, event)
         try:
             handler_runtime.record_begin_time()
-            self.func(context, event)
+            results = self.func(context, event)
+            if not hasattr(results, '__iter__') :
+                results = (results, )
+            for result in results:
+                if isinstance(result, NoEmittion):
+                    handler_runtime.record_no_emittion(result)
+                elif isinstance(result, Emittion):
+                    handler_runtime.record_emittion(result)
         except Exception as e:
             e.traceback = traceback.format_exc()
             handler_runtime.record_exception(e)

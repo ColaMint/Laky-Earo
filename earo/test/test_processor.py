@@ -2,7 +2,7 @@
 
 import unittest
 from earo.event import Event
-from earo.handler import Handler
+from earo.handler import Handler, Emittion, NoEmittion
 from earo.mediator import Mediator
 from earo.context import Context
 
@@ -26,7 +26,7 @@ class TestProcessor(unittest.TestCase):
             pass
 
         def foo(context, event):
-            context.emit(EventB())
+            return Emittion(EventB())
 
         def boo(context, event):
             pass
@@ -58,7 +58,7 @@ class TestProcessor(unittest.TestCase):
             pass
 
         def foo(context, event):
-            context.emit(EventB())
+            return Emittion(EventB())
 
         def boo(context, event):
             pass
@@ -72,12 +72,9 @@ class TestProcessor(unittest.TestCase):
         )
 
         context = Context(mediator, EventA())
-        context.process()
-        process_flow = context.process_flow
 
-        handler_runtime_node = process_flow.root.child_nodes[0]
-        handler_runtime = handler_runtime_node.item
-        self.assertFalse(handler_runtime.succeeded)
+        with self.assertRaises(TypeError):
+            context.process()
 
     def test_process_flow(self):
 
@@ -96,11 +93,10 @@ class TestProcessor(unittest.TestCase):
             pass
 
         def fooBC(context, event):
-            context.emit(EventB())
-            context.emit(EventC())
+            return (Emittion(EventB()), Emittion(EventC()))
 
         def fooD(context, event):
-            context.emit(EventD())
+            return Emittion(EventD())
 
         def foo(context, event):
             pass
@@ -157,6 +153,41 @@ class TestProcessor(unittest.TestCase):
         handler_runtime_node_5 = event_node_4.child_nodes[0]
         self.assertEqual(handler_runtime_node_5.item.handler, handler_5)
         self.assertFalse(handler_runtime_node_5.item.succeeded)
+
+        self.assertIsNotNone(process_flow.find_event(EventA)[0])
+        self.assertIsNotNone(process_flow.find_event(EventB)[0])
+        self.assertIsNotNone(process_flow.find_event(EventC)[0])
+        self.assertIsNotNone(process_flow.find_event(EventD)[0])
+
+    def test_no_emittion(self):
+
+        mediator = Mediator()
+
+        class EventA(Event):
+            pass
+
+        class EventB(Event):
+            pass
+
+        def foo(context, event):
+            return NoEmittion(EventB, 'test')
+
+        def boo(context, event):
+            pass
+
+        handler_a = Handler(EventA, foo, [EventB])
+        handler_b = Handler(EventB, boo)
+
+        mediator.register_event_handler(
+            handler_a,
+            handler_b
+        )
+
+        context = Context(mediator, EventA())
+        context.process()
+        process_flow = context.process_flow
+        self.assertSequenceEqual(process_flow.find_event(EventB), (None, 'test'))
+
 
 if __name__ == '__main__':
     unittest.main()

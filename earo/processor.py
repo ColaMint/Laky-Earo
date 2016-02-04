@@ -25,6 +25,7 @@ class ProcessFlow(object):
 
     def __init__(self, root):
         self.root = root
+        self._build_event_index()
 
     def serialize(self):
         return pickle.dumps(self)
@@ -38,6 +39,38 @@ class ProcessFlow(object):
         except Exception:
             return None
 
+    def _build_event_index(self):
+        self._event_emittion_index = {}
+        self._event_no_emittion_index = {}
+        self._event_emittion_index[self.root.type] = [self.root.item]
+        self._build_event_index_help(self.root)
+
+    def _build_event_index_help(self, node):
+        if node.type == HandlerRuntime:
+            handler_runtime = node.item
+            for event in handler_runtime.emittion:
+                event_cls = type(event)
+                if event_cls not in self._event_emittion_index:
+                    self._event_emittion_index[event_cls] = []
+                self._event_emittion_index[event_cls].append(event)
+            for event_cls, msg in handler_runtime.no_emittion.iteritems():
+                if event_cls not in self._event_no_emittion_index:
+                    self._event_no_emittion_index[event_cls] = []
+                self._event_no_emittion_index[event_cls].append(msg)
+
+        for child_node in node.child_nodes:
+            self._build_event_index_help(child_node)
+
+    def find_event(self, event_cls, return_first=True):
+        if event_cls in self._event_emittion_index:
+            return (self._event_emittion_index[event_cls][0], None) \
+                if return_first \
+                else (self._event_emittion_index[event_cls], None)
+        else:
+            return (None, self._event_no_emittion_index[event_cls][0]) \
+                if return_first \
+                else (None, self._event_no_emittion_index[event_cls])
+
 
 class Processor(object):
 
@@ -46,7 +79,6 @@ class Processor(object):
         self.context = context
         self._event_node_queue = Queue()
         self._handler_runtime_node_queue = Queue()
-        self.current_handler = None
 
     def process(self, event):
 
@@ -62,19 +94,16 @@ class Processor(object):
 
             handlers = self.context.mediator.find_handlers(type(event))
             for handler in handlers:
-                self.current_handler = handler
                 handler_runtime = handler.handle(self.context, event)
                 handler_runtime_node = ProcessFlowNode(handler_runtime)
                 event_node.append_child_node(handler_runtime_node)
-                while self._handler_runtime_node_queue.qsize() < self._event_node_queue.qsize():
-                    self._handler_runtime_node_queue.put(handler_runtime_node)
+                for emitted_event in handler_runtime.emittion:
+                    event_cls = type(emitted_event)
+                    if event_cls in handler.emit_events:
+                        self._event_node_queue.put(ProcessFlowNode(emitted_event))
+                        self._handler_runtime_node_queue.put(handler_runtime_node)
+                    else:
+                        raise TypeError('Unexcepted event `%s` emitted by handler `%s`.' %
+                                        (event_cls, handler))
 
         return ProcessFlow(root)
-
-    def emit(self, event):
-        event_cls = type(event)
-        if event_cls in self.current_handler.emit_events:
-            self._event_node_queue.put(ProcessFlowNode(event))
-        else:
-            raise TypeError('Unexcepted event `%s` emitted by handler `%s`.' %
-                            (event_cls, handler.name))
