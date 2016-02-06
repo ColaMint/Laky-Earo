@@ -1,15 +1,22 @@
 # -*- coding:utf-8 -*-
+from mediator import Mediator
+from handler import Handler
+from context import Context
+
 
 class App(object):
 
-    def __init__(self, config_filepath=None):
-        pass
-
-    def _load_config_from_file(config_filepath):
-        pass
+    def __init__(self):
+        self.mediator = Mediator()
 
     def handler(self, event_cls, emit_events=[]):
-        pass
+        def decorator(func):
+            handler = Handler(event_cls, func, emit_events)
+            self.mediator.register_event_handler(handler)
+            return func
+        return decorator
 
     def emit(self, event):
-        pass
+        context = Context(self.mediator, event)
+        context.process()
+        return context
