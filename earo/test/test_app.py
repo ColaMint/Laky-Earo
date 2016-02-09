@@ -5,7 +5,7 @@ from earo.app import App
 import unittest
 
 
-class TestEvent(unittest.TestCase):
+class TestApp(unittest.TestCase):
 
     def setUp(self):
         pass

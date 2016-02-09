@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 import pickle
-from event import Event
 from handler import HandlerRuntime
 from Queue import Queue
 
@@ -10,12 +9,7 @@ class ProcessFlowNode(object):
     def __init__(self, item):
         self.item = item
         self.child_nodes = list()
-        if isinstance(self.item, (Event, HandlerRuntime)):
-            self.type = type(item)
-        else:
-            raise TypeError(
-                'ProcessFlowNode\'s item should be instance of %s or %s, not %s' %
-                (Event, HandlerRuntime, type(item)))
+        self.type = type(item)
 
     def append_child_node(self, node):
         self.child_nodes.append(node)
@@ -107,3 +101,31 @@ class Processor(object):
                                         (event_cls, handler))
 
         return ProcessFlow(root)
+
+class ProcessFlowPreview(object):
+
+    def __init__(self, mediator, source_event_cls):
+
+        self.mediator = mediator
+        self._build_process_flow_preview(source_event_cls)
+
+    def _build_process_flow_preview(self, source_event_cls):
+
+        source_event = source_event_cls()
+        event_node = ProcessFlowNode(source_event)
+        self.root = event_node
+
+        def _build_process_flow_pre_view_help(event_node):
+            handlers = self.mediator.find_handlers(event_node.type)
+            for handler in handlers:
+                handler_node = ProcessFlowNode(handler)
+                event_node.append_child_node(handler_node)
+                for event_cls in handler.emit_events:
+                    new_event = event_cls()
+                    new_event_node = ProcessFlowNode(new_event)
+                    handler_node.append_child_node(new_event_node)
+                    _build_process_flow_pre_view_help(new_event_node)
+
+        _build_process_flow_pre_view_help(self.root)
+
+
