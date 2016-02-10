@@ -2,12 +2,18 @@
 from mediator import Mediator
 from handler import Handler
 from context import Context
+from importlib import import_module
 
 
 class App(object):
 
-    def __init__(self):
+    def __init__(self, config):
         self.mediator = Mediator()
+        self.config = config
+        self._init_app_with_config()
+
+    def _init_app_with_config(self):
+        pass
 
     def handler(self, event_cls, emit_events=[]):
         def decorator(func):

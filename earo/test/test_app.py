@@ -2,6 +2,7 @@
 
 from earo.event import Event
 from earo.app import App
+from earo.config import Config
 import unittest
 
 
@@ -14,7 +15,9 @@ class TestApp(unittest.TestCase):
         pass
 
     def test_handler(self):
-        app = App()
+
+        config = Config()
+        app = App(config)
 
         class AEvent(Event):
             pass
@@ -25,6 +28,7 @@ class TestApp(unittest.TestCase):
 
         handlers = app.mediator.find_handlers(AEvent)
         self.assertTrue(len(handlers)>0)
+
 
 if __name__ == '__main__':
     unittest.main()
