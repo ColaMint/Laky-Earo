@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 
-
 class Field(object):
 
     def __init__(self, field_type, default=None):
