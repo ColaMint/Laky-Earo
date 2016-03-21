@@ -83,7 +83,7 @@ class TestProcessor(unittest.TestCase):
         mediator = Mediator()
 
         class EventA(Event):
-            ass
+            pass
 
         class EventB(Event):
             pass
