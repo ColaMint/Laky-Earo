@@ -1,4 +1,6 @@
+#!/usr/bin/python
 # -*- coding:utf-8 -*-
+
 import pickle
 from handler import HandlerRuntime
 from Queue import Queue
@@ -94,13 +96,17 @@ class Processor(object):
                 for emitted_event in handler_runtime.emittion:
                     event_cls = type(emitted_event)
                     if event_cls in handler.emit_events:
-                        self._event_node_queue.put(ProcessFlowNode(emitted_event))
-                        self._handler_runtime_node_queue.put(handler_runtime_node)
+                        self._event_node_queue.put(
+                            ProcessFlowNode(emitted_event))
+                        self._handler_runtime_node_queue.put(
+                            handler_runtime_node)
                     else:
-                        raise TypeError('Unexcepted event `%s` emitted by handler `%s`.' %
-                                        (event_cls, handler))
+                        raise TypeError(
+                            'Unexcepted event `%s` emitted by handler `%s`.' %
+                            (event_cls, handler))
 
         return ProcessFlow(root)
+
 
 class ProcessFlowPreview(object):
 
@@ -127,5 +133,3 @@ class ProcessFlowPreview(object):
                     _build_process_flow_pre_view_help(new_event_node)
 
         _build_process_flow_pre_view_help(self.root)
-
-

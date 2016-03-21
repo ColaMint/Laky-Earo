@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding:utf-8 -*-
 
 from earo.event import Event
@@ -27,7 +28,7 @@ class TestApp(unittest.TestCase):
             pass
 
         handlers = app.mediator.find_handlers(AEvent)
-        self.assertTrue(len(handlers)>0)
+        self.assertTrue(len(handlers) > 0)
 
 
 if __name__ == '__main__':

@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding:utf-8 -*-
 
 import unittest
@@ -144,7 +145,7 @@ class TestProcessor(unittest.TestCase):
         self.assertTrue(handler_runtime_node_3.item.succeeded)
         self.assertEqual(handler_runtime_node_4.item.handler, handler_4)
         self.assertTrue(handler_runtime_node_4.item.succeeded)
-        self.assertIsInstance(event_node_4.item,EventD)
+        self.assertIsInstance(event_node_4.item, EventD)
         self.assertEqual(handler_runtime_node_5.item.handler, handler_5)
         self.assertFalse(handler_runtime_node_5.item.succeeded)
         self.assertIsNotNone(process_flow.find_event(EventA))
@@ -179,7 +180,9 @@ class TestProcessor(unittest.TestCase):
         context = Context(mediator, EventA())
         context.process()
         process_flow = context.process_flow
-        self.assertSequenceEqual(process_flow.find_event(EventB), (None, 'test'))
+        self.assertSequenceEqual(
+            process_flow.find_event(EventB),
+            (None, 'test'))
 
     def test_process_flow_preview(self):
 
@@ -252,4 +255,3 @@ class TestProcessor(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

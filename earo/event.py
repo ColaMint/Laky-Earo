@@ -1,4 +1,6 @@
+#!/usr/bin/python
 # -*- coding:utf-8 -*-
+
 
 class Field(object):
 
@@ -10,7 +12,7 @@ class Field(object):
     def match(self, value):
         if not isinstance(value, self.field_type):
             raise TypeError('expect %s, not %s' %
-                             (self.field_type, type(value)))
+                            (self.field_type, type(value)))
 
 
 class EventMetaClass(type):
@@ -31,6 +33,7 @@ class EventMetaClass(type):
         new_attrs['__mappings__'] = mappings
         new_attrs['__params__'] = params
         return super(EventMetaClass, cls).__new__(cls, name, bases, new_attrs)
+
 
 class Event(object):
 

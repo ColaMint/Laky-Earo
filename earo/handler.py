@@ -1,19 +1,23 @@
+#!/usr/bin/python
 # -*- coding:utf-8 -*-
 
 import inspect
 import traceback
 from datetime import datetime
 
+
 class NoEmittion(object):
 
     def __init__(self, event_cls, msg):
         self.event_cls = event_cls
-        self.msg       = msg
+        self.msg = msg
+
 
 class Emittion(object):
 
     def __init__(self, event):
         self.event = event
+
 
 class HandlerRuntime(object):
 
@@ -84,7 +88,7 @@ class Handler(object):
         try:
             handler_runtime.record_begin_time()
             results = self.func(context, event)
-            if not hasattr(results, '__iter__') :
+            if not hasattr(results, '__iter__'):
                 results = (results, )
             for result in results:
                 if isinstance(result, NoEmittion):

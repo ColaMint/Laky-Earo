@@ -1,7 +1,9 @@
+#!/usr/bin/python
 # -*- coding:utf-8 -*-
 
 from earo.graphic import build_process_flow_html
 import unittest
+
 
 class TestHandler(unittest.TestCase):
 

@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding:utf-8 -*-
 
 import unittest
@@ -35,7 +36,9 @@ class TestMediator(unittest.TestCase):
         mediator.register_event_handler(handler_1)
         mediator.register_event_handler(handler_2)
 
-        self.assertSequenceEqual(mediator.find_handlers(EventA), [handler_1, handler_2])
+        self.assertSequenceEqual(
+            mediator.find_handlers(EventA), [
+                handler_1, handler_2])
         self.assertSequenceEqual(mediator.find_handlers(EventB), [])
 
 if __name__ == '__main__':

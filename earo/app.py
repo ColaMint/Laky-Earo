@@ -1,8 +1,9 @@
+#!/usr/bin/python
 # -*- coding:utf-8 -*-
+
 from mediator import Mediator
 from handler import Handler
 from context import Context
-from importlib import import_module
 
 
 class App(object):
