@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-from earo.processor import Processor
-
 
 class Context(object):
 
@@ -15,8 +13,8 @@ class Context(object):
     def process(self):
         self.process_flow = self.processor.process(self)
 
-    def find_event(self, event_cls, return_first=True):
-        return self.process_flow.find_event(event_cls, return_first)
+    def find_event(self, event_cls):
+        return self.process_flow.find_event(event_cls)
 
     def why_no_emittion(self, event_cls):
-        return self.process_flow.why_no_emittion(event_cls, return_first)
+        return self.process_flow.why_no_emittion(event_cls)

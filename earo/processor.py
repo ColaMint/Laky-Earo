@@ -2,9 +2,6 @@
 # -*- coding:utf-8 -*-
 
 import pickle
-from handler import HandlerRuntime
-from event import Event
-from Queue import Queue
 from enum import Enum
 
 
@@ -102,7 +99,7 @@ class ProcessFlow(object):
             elif node_type == NodeType.Handler:
                 handler = inactive_item
                 child_nodes = []
-                for event_cls in handler.emit_events:
+                for event_cls in handler.emittion_statement:
                     event_node = build_node_recursively(
                         event_cls, NodeType.Event)
                     child_nodes.append(event_node)

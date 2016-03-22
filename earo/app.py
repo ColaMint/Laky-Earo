@@ -12,14 +12,14 @@ class App(object):
     def __init__(self, config):
         self.mediator = Mediator()
         self.config = Config(config)
-        self._init_app_with_config()
+        self.__init_with_config()
 
-    def _init_app_with_config(self):
+    def __init_with_config(self):
         pass
 
-    def handler(self, event_cls, emit_events=[]):
+    def handler(self, event_cls, emittion_statement=[]):
         def decorator(func):
-            handler = Handler(event_cls, func, emit_events)
+            handler = Handler(event_cls, func, emittion_statement)
             self.mediator.register_event_handler(handler)
             return func
         return decorator

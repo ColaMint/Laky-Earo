@@ -63,14 +63,14 @@ class HandlerRuntime(object):
 
 class Handler(object):
 
-    def __init__(self, event_cls, func, emit_events=list()):
+    def __init__(self, event_cls, func, emittion_statement=[]):
 
         self.event_cls = event_cls
-        self._validate_func(func)
         self.func = func
-        self.emit_events = emit_events
+        self.emittion_statement = emittion_statement
+        self.__validate_func(func)
 
-    def _validate_func(self, handle_func):
+    def __validate_func(self, handle_func):
 
         argspec = inspect.getargspec(handle_func)
         if argspec.args != ['context', 'event']:
@@ -106,7 +106,7 @@ class Handler(object):
         return isinstance(obj, Handler) \
             and self.event_cls == obj.event_cls \
             and self.func == obj.func \
-            and self.emit_events == obj.emit_events
+            and self.emittion_statement == obj.emittion_statement
 
     def __str__(self):
         return '%s.%s:%s.%s' % (self.event_cls.__module__,
