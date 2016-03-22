@@ -27,8 +27,8 @@ class HandlerRuntime(object):
         self.begin_time = None
         self.end_time = None
         self.exception = None
-        self.no_emittion = {}
-        self.emittion = []
+        self.no_emittions = {}
+        self.emittions = []
 
     @property
     def succeeded(self):
@@ -44,14 +44,14 @@ class HandlerRuntime(object):
         self.exception = exception
 
     def record_emittion(self, emittion):
-        self.emittion.append(emittion.event)
+        self.emittions.append(emittion.event)
 
     def record_no_emittion(self, no_emittion):
-        self.no_emittion[no_emittion.event_cls] = no_emittion.msg
+        self.no_emittions[no_emittion.event_cls] = no_emittion.msg
 
     def why_no_emittion(self, event_cls):
-        return self.no_emittion[event_cls] \
-            if event_cls in self.no_emittion else None
+        return self.no_emittions[event_cls] \
+            if event_cls in self.no_emittions else None
 
     @property
     def time_cost(self):

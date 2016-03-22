@@ -4,13 +4,14 @@
 from mediator import Mediator
 from handler import Handler
 from context import Context
+from config import Config
 
 
 class App(object):
 
     def __init__(self, config):
         self.mediator = Mediator()
-        self.config = config
+        self.config = Config(config)
         self._init_app_with_config()
 
     def _init_app_with_config(self):

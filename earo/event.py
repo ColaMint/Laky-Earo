@@ -48,8 +48,8 @@ class Event(object):
             return self.__params__[key]
         else:
             raise AttributeError(
-                "Event `%s` has no param `%s`" %
-                (self.__event_name__, key))
+                "%s has no param `%s`" %
+                (type(self), key))
 
     def __setattr__(self, key, value):
         if key in self.__params__:
@@ -57,5 +57,5 @@ class Event(object):
             self.__params__[key] = value
         else:
             raise AttributeError(
-                "Event `%s` has no param `%s`" %
-                (self.__event_name__, key))
+                "%s has no param `%s`" %
+                (type(self), key))
