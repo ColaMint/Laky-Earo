@@ -11,7 +11,7 @@ class App(object):
 
     def __init__(self, config):
         self.mediator = Mediator()
-        self.config = Config(config)
+        self.config = config
         self.__init_with_config()
 
     def __init_with_config(self):

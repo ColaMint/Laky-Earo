@@ -9,7 +9,7 @@ class Config(object):
     }
 
     def __init__(self, config={}):
-        for key, value in self.__config__.iteritems():
+        for key, value in config.iteritems():
             self.__setattr__(key, value)
 
     def __getattr__(self, key):
