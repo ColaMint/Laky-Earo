@@ -3,6 +3,7 @@
 
 from test_app import TestApp
 from test_config import TestConfig
+from test_diagram import TestDiagram
 from test_event import TestEvent
 from test_handler import TestHandler
 from test_mediator import TestMediator

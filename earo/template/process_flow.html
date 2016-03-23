@@ -3,9 +3,78 @@
     <head>
         <meta charset="utf-8">
         <link rel="stylesheet" type="text/css" href="./static/bootstrap.min.css">
+        <style type="text/css">
+            .panel {
+                position: absolute;
+                width: 360px;
+            }
+            h3 {
+                word-break: break-word;
+            }   
+        </style>
     </head>
     <body>
     </body>
     <script src="./static/jquery-2.2.0.min.js"></script>
     <script src="./static/bootstrap.min.js"></script>
+    <script>
+        window.onload = function() {
+            var first_panel = {{ first_panel }};
+            build_panel(first_panel);
+        }
+
+        function build_panel(first_panel) {
+            col_offset = 120; // 120 px
+            row_offset = 40;
+            bottom_of_col = new Array()  
+
+            var build_panel_recursively = function(panel, row, col) {
+                x = 120 * col; 
+                y = 0;
+
+                    for (var i = 0; i < bottom_of_col.length; ++i) {
+                        y = Math.max(y, bottom_of_col[i]); 
+                    } 
+
+                y += row_offset;
+
+                var dom_panel = $("<div class=\"panel earo-panel\" style=\"left:{0}px;top:{1}px;\"></div>".format(x, y));
+                var dom_heading = $("<div class=\"panel-heading\"></div>");
+                var dom_title = $("<h3 class=panel-title></h3>").text(panel.title);
+                dom_heading.append(dom_title)
+                dom_panel.append(dom_heading)
+                $("body").append(dom_panel)
+                bottom = y + dom_panel.height();
+                bottom_of_col[col] = bottom;
+				
+                for (var i = 0; i < panel.next_panels.length; ++i) {
+					build_panel_recursively(panel.next_panels[i], row + i + 1, col + 1);
+				}
+            }
+            build_panel_recursively(first_panel, 0, 0)
+        }
+
+		String.prototype.format = function(args) {
+			var result = this;
+			if (arguments.length > 0) {    
+				if (arguments.length == 1 && typeof (args) == "object") {
+					for (var key in args) {
+						if(args[key]!=undefined){
+							var reg = new RegExp("({" + key + "})", "g");
+							result = result.replace(reg, args[key]);
+						}
+					}
+				}
+				else {
+					for (var i = 0; i < arguments.length; i++) {
+						if (arguments[i] != undefined) {
+							var reg = new RegExp("({[" + i + "]})", "g");
+							result = result.replace(reg, arguments[i]);
+						}
+					}
+				}
+			}
+			return result;
+		}
+    </script>
 </html>

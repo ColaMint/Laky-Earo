@@ -59,3 +59,7 @@ class Event(object):
             raise AttributeError(
                 "%s has no param `%s`" %
                 (type(self), key))
+
+    @property
+    def params(self):
+        return self.__params__
