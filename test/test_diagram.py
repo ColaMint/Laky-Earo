@@ -2,11 +2,11 @@
 # -*- coding:utf-8 -*-
 
 import unittest
-from earo.event import Event
-from earo.handler import Handler, Emittion, NoEmittion
+from earo.event import Event, Field
+from earo.handler import Handler, Emittion
 from earo.mediator import Mediator
 from earo.context import Context
-from earo.processor import ProcessFlow, Processor
+from earo.processor import Processor
 from earo.diagram import Diagram
 
 
@@ -24,16 +24,16 @@ class TestDiagram(unittest.TestCase):
         processor = Processor()
 
         class EventA(Event):
-            pass
+            event_a_field = Field(int, 100);
 
         class EventB(Event):
-            pass
+            event_b_field = Field(str, 'hello');
 
         class EventC(Event):
-            pass
+            event_c_field = Field(float, 1.1);
 
         class EventD(Event):
-            pass
+            event_d_field = Field(dict, {'x': 3, 'y': 4});
 
         def fooBC(context, event):
             return (Emittion(EventB()), Emittion(EventC()))

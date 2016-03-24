@@ -18,6 +18,20 @@
     <script src="./static/jquery-2.2.0.min.js"></script>
     <script src="./static/bootstrap.min.js"></script>
     <script>
+
+        Color = {
+            'Red'   : 1,
+            'Blue'  : 2,
+            'Green' : 3,
+            'Yellow': 4,
+            'Grey'  : 5,
+        } 
+
+        ContentType = {
+            'Text'  : 1,
+            'Table' : 2,
+        }
+
         window.onload = function() {
             var first_panel = {{ first_panel }};
             build_panel(first_panel);
@@ -27,6 +41,61 @@
             col_offset = 120; // 120 px
             row_offset = 40;
             bottom_of_col = new Array()  
+
+            var color_to_class = function(color) {
+                color_class = null;
+                switch(color) {
+                case Color.Red:
+                    color_class = "panel-danger";
+                    break;
+                case Color.Blue:
+                    color_class = "panel-primary";
+                    break;
+                case Color.Green:
+                    color_class = "panel-success";
+                    break;
+                case Color.Yellow:
+                    color_class = "panel-warning";
+                    break;
+                case Color.Grey:
+                    color_class = "panel-default";
+                    break;
+                default:
+                    color_class = "panel-default";
+                } 
+                return color_class;
+            }
+
+            var fill_content = function(element, content) {
+                switch(content.content_type) {
+                case ContentType.Text:
+                    element.text(content.text);
+                    break;
+                case ContentType.Table:
+                    var dom_table = $("<table class=\"table\"></table>");
+                    element.append(dom_table);
+
+                    var dom_thead = $("<thead></thead>");
+                    dom_table.append(dom_thead);
+                    var dom_tr = $("<tr></tr>"); 
+                    dom_thead.append(dom_tr);
+                    for (var i = 0; i < content.table_head.length; ++i) {
+                        var dom_th = $("<th></th").text(content.table_head[i]);
+                        dom_tr.append(dom_th);
+                    }
+
+                    var dom_tbody = $("<tbody></tbody>");
+                    dom_table.append(dom_tbody);
+                    for (var i = 0; i < content.table_rows.length; ++i) {
+                        var dom_tr = $("<tr></tr>"); 
+                        dom_tbody.append(dom_tr);
+                        for (var j = 0; j < content.table_rows[i].length; ++j) {
+                            var dom_th = $("<th></th").text(content.table_rows[i][j]);
+                            dom_tr.append(dom_th);
+                        }
+                    }
+                }
+            }
 
             var build_panel_recursively = function(panel, row, col) {
                 x = 120 * col; 
@@ -38,12 +107,30 @@
 
                 y += row_offset;
 
-                var dom_panel = $("<div class=\"panel earo-panel\" style=\"left:{0}px;top:{1}px;\"></div>".format(x, y));
-                var dom_heading = $("<div class=\"panel-heading\"></div>");
-                var dom_title = $("<h3 class=panel-title></h3>").text(panel.title);
-                dom_heading.append(dom_title)
-                dom_panel.append(dom_heading)
+                var dom_panel = $("<div class=\"panel earo-panel {0}\" style=\"left:{1}px;top:{2}px;\"></div>".format(color_to_class(panel.color), x ,y));
                 $("body").append(dom_panel)
+
+                var dom_heading = $("<div class=\"panel-heading\"></div>");
+                dom_panel.append(dom_heading)
+
+                if (panel.title) {
+                    var dom_title = $("<div class=\"panel-title\"></div>"); 
+                    fill_content(dom_title, panel.title)
+                    dom_heading.append(dom_title);
+                }
+                
+                if (panel.body) {
+                    var dom_body = $("<div class=\"panel-body\"></div>"); 
+                    fill_content(dom_body, panel.body)
+                    dom_panel.append(dom_body);
+                }
+
+                if (panel.footer) {
+                    var dom_footer = $("<div class=\"panel-footer\"></div>"); 
+                    fill_content(dom_footer, panel.footer)
+                    dom_panel.append(dom_footer);
+                }
+
                 bottom = y + dom_panel.height();
                 bottom_of_col[col] = bottom;
 				
