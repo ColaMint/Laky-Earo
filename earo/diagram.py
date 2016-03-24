@@ -213,33 +213,38 @@ class SummaryPanel(Panel):
 
 class Diagram(object):
 
-    def __init__(self, process_flow):
+    def __init__(self, process_flow=None, json=None):
         self.process_flow = process_flow
-        self.__build_panel()
+        if process_flow:
+            self.__from_process_flow(process_flow)
+        elif json:
+            self.json = json
+        else:
+            raise AttributeError('both `process_flow` and `json` is None')
 
-    def __build_panel(self):
+    def __from_process_flow(self, process_flow):
 
         def build_node_panel_recursively(node):
-            panel = NodePanel(self.process_flow, node)
+            panel = NodePanel(process_flow, node)
             for child_node in node.child_nodes:
                 next_panel = build_node_panel_recursively(child_node)
                 panel.append_next_panel(next_panel)
             return panel
 
-        summary_panel = SummaryPanel(self.process_flow)
+        summary_panel = SummaryPanel(process_flow)
         root_node_panel = build_node_panel_recursively(
-                self.process_flow.root)
+                process_flow.root)
         summary_panel.append_next_panel(root_node_panel)
-        self.first_panel = summary_panel
+        self.json = summary_panel.to_json()
 
-    def transfer_process_flow_to_html(self, dest_dir):
+    def to_html(self, dest_dir):
 
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir, 0o744)
 
         env = Environment(loader=FileSystemLoader(template_path))
         template = env.get_template('process_flow.html')
-        result = template.render(first_panel=self.first_panel.to_json())
+        result = template.render(diagram=self.json)
 
         # create process_flow.html
         dest_filepath = os.path.join(dest_dir, 'process_flow.html')
@@ -251,3 +256,6 @@ class Diagram(object):
         if os.path.exists(dest_static_path):
             shutil.rmtree(dest_static_path)
         shutil.copytree(static_path, dest_static_path)
+
+    def to_json(self):
+        return self.json

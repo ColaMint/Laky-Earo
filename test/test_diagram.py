@@ -73,8 +73,8 @@ class TestDiagram(unittest.TestCase):
         context.process()
         process_flow = context.process_flow
 
-        diagram = Diagram(process_flow)
-        diagram.transfer_process_flow_to_html('/tmp/earo/active')
+        diagram = Diagram(process_flow=process_flow)
+        diagram.to_html('/tmp/earo/active')
 
     def test_inactive_process_flow(self):
 
@@ -119,8 +119,57 @@ class TestDiagram(unittest.TestCase):
         )
 
         process_flow = ProcessFlow(mediator, EventA)
-        diagram = Diagram(process_flow)
-        diagram.transfer_process_flow_to_html('/tmp/earo/inactive')
+        diagram = Diagram(process_flow=process_flow)
+        diagram.to_html('/tmp/earo/inactive')
+
+    def test_json(self):
+
+        mediator = Mediator()
+
+        class EventA(Event):
+            event_a_field = Field(int, 100);
+
+        class EventB(Event):
+            event_b_field = Field(str, 'hello');
+
+        class EventC(Event):
+            event_c_field = Field(float, 1.1);
+
+        class EventD(Event):
+            event_d_field = Field(dict, {'x': 3, 'y': 4});
+
+        def fooBC(context, event):
+            return (Emittion(EventB()), Emittion(EventC()))
+
+        def fooD(context, event):
+            return Emittion(EventD())
+
+        def foo(context, event):
+            pass
+
+        def fooEx(context, event):
+            1 / 0
+
+        handler_1 = Handler(EventA, fooBC, [EventB, EventC])
+        handler_2 = Handler(EventA, foo)
+        handler_3 = Handler(EventB, fooD, [EventD])
+        handler_4 = Handler(EventC, foo)
+        handler_5 = Handler(EventD, fooEx)
+
+        mediator.register_event_handler(
+            handler_1,
+            handler_2,
+            handler_3,
+            handler_4,
+            handler_5
+        )
+
+        process_flow = ProcessFlow(mediator, EventA)
+        diagram_from_process_flow = Diagram(process_flow=process_flow)
+        json = diagram_from_process_flow.to_json()
+        diagram_from_json = Diagram(json=json)
+        diagram_from_json.to_html('/tmp/earo/json')
+
 
 if __name__ == '__main__':
     unittest.main()
