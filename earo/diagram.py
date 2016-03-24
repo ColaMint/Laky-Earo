@@ -103,10 +103,12 @@ class Panel(object):
             'color': self.color,
             'next_panels': []
         }
-        panel_dict['title'] = None if self.title is None else self.title.to_dict()
-        panel_dict['body'] = None if self.body is None else self.body.to_dict()
-        panel_dict[
-            'footer'] = None if self.footer is None else self.footer.to_dict()
+        panel_dict['title'] = None if self.title is None \
+            else self.title.to_dict()
+        panel_dict['body'] = None if self.body is None \
+            else self.body.to_dict()
+        panel_dict['footer'] = None if self.footer is None \
+            else self.footer.to_dict()
         for next_panel in self.next_panels:
             panel_dict['next_panels'].append(next_panel.to_dict())
         return panel_dict
@@ -114,104 +116,138 @@ class Panel(object):
 
 class NodePanel(Panel):
 
-    def __init__(self, node):
+    def __init__(self, process_flow, node):
         super(NodePanel, self).__init__()
-        self.__parse_node(node)
+        self.__parse_node(process_flow, node)
 
-    def __parse_node(self, node):
+    def __parse_node(self, process_flow, node):
         if node.type == NodeType.Event:
-            self.__parse_event_node(node)
+            self.__parse_event_node(process_flow, node)
         elif node.type == NodeType.Handler:
-            self.__parse_handler_node(node)
+            self.__parse_handler_node(process_flow, node)
         else:
             raise TypeError('Unknown NodeType: `%s`.' % (node.type,))
 
-    def __parse_event_node(self, event_node):
+    def __parse_event_node(self, process_flow, event_node):
         event_cls = event_node.inactive_item
         self.title = TextContent('%s.%s' % (
             event_cls.__module__,
             event_cls.__name__))
 
-        if event_node.active:
-            event = event_node.active_item
+        if process_flow.active:
+            if event_node.active:
+                event = event_node.active_item
+                self.color = Color.Blue
+                self.body = TableContent(table_head=('Field', 'Value'))
+                for k, v in event.params.iteritems():
+                    self.body.append_table_row((k, v))
+            else:
+                event = event_cls()
+                self.color = Color.Grey
+                self.body = TableContent(table_head=('Field', 'Default Value'))
+                for k, v in event.params.iteritems():
+                    self.body.append_table_row((k, v))
+                self.footer = TextContent('why no emittion: %s' %
+                                (process_flow.why_no_emittion(event_cls),))
+        else:
+            event = event_cls()
             self.color = Color.Blue
-            self.body = TableContent(table_head=('Field', 'Value'))
+            self.body = TableContent(table_head=('Field', 'Default Value'))
             for k, v in event.params.iteritems():
                 self.body.append_table_row((k, v))
-        else:
-            self.color = Color.Grey
 
-    def __parse_handler_node(self, handler_node):
+
+    def __parse_handler_node(self, process_flow, handler_node):
         handler = handler_node.inactive_item
         self.title = TextContent('%s.%s' % (
             handler.func.__module__,
             handler.func.__name__))
 
-        if handler_node.active:
-            handler_runtime = handler_node.active_item
-            if handler_runtime.succeeded:
-                self.color = Color.Green
-                self.body = TableContent(table_head=('Field', 'Value'))
-                self.body.append_table_row(
-                    ('no_emittions', handler_runtime.no_emittions))
-                self.body.append_table_row(
-                    ('time_cost', '%s ms' %
-                    handler_runtime.time_cost))
+        if process_flow.active:
+            if handler_node.active:
+                handler_runtime = handler_node.active_item
+                if handler_runtime.succeeded:
+                    self.color = Color.Green
+                    self.body = TableContent(table_head=('Field', 'Value'))
+                    self.body.append_table_row(
+                        ('time_cost', '%s ms' %
+                        handler_runtime.time_cost))
+                else:
+                    self.color = Color.Red
+                    self.body = TextContent(str(handler_runtime.exception))
             else:
-                self.color = Color.Red
-                self.body = TextContent(str(handler_runtime.exception))
+                self.color = Color.Grey
+                self.body = TableContent(table_head=('Events to be Emitted',))
+                for event_cls in handler.emittion_statement:
+                    self.body.append_table_row(
+                        ('%s.%s' % (event_cls.__module__, event_cls.__name__),))
         else:
-            self.color = Color.Grey
+            self.color = Color.Green
+            self.body = TableContent(table_head=('Events to be Emitted',))
+            for event_cls in handler.emittion_statement:
+                self.body.append_table_row(
+                    ('%s.%s' % (event_cls.__module__, event_cls.__name__),))
+
 
 
 class SummaryPanel(Panel):
 
-    def __init__(self, total_time_cost=-1, total_exception=0):
+    def __init__(self, process_flow):
         super(SummaryPanel, self).__init__()
-        self.total_time_cost = total_time_cost
-        self.total_exception = total_exception
-        self.__parse_summary()
+        self.__parse_process_flow(process_flow)
 
-    def __parse_summary(self):
+    def __parse_process_flow(self, process_flow):
         self.color = Color.Yellow
-        self.title = TextContent('total_time_cost: %d ms; total_exception: %d' % (
-                        self.total_time_cost, self.total_exception))
+        if process_flow.active:
+            self.title = TextContent('Processor Flow Summary')
+            self.body = TableContent(table_head=('Field', 'Value'))
+            self.body.append_table_row(
+                ('begin_time', process_flow.begin_time.strftime('%Y-%m-%d %H:%M:%S')))
+            self.body.append_table_row(
+                ('total_time_cost', '%d ms' % process_flow.total_time_cost))
+            self.body.append_table_row(
+                ('total_exception', process_flow.total_exception))
+        else:
+            self.title = TextContent('Processor Flow Preview')
+
 
 class Diagram(object):
 
     def __init__(self, process_flow):
-        self.process_flow=process_flow
+        self.process_flow = process_flow
         self.__build_panel()
 
     def __build_panel(self):
 
         def build_node_panel_recursively(node):
-            panel = NodePanel(node)
+            panel = NodePanel(self.process_flow, node)
             for child_node in node.child_nodes:
-                next_panel=build_node_panel_recursively(child_node)
+                next_panel = build_node_panel_recursively(child_node)
                 panel.append_next_panel(next_panel)
             return panel
 
-        self.first_panel = SummaryPanel(0, 0)
-        self.first_node_panel = build_node_panel_recursively(self.process_flow.root)
-        self.first_panel.append_next_panel(self.first_node_panel)
+        summary_panel = SummaryPanel(self.process_flow)
+        root_node_panel = build_node_panel_recursively(
+                self.process_flow.root)
+        summary_panel.append_next_panel(root_node_panel)
+        self.first_panel = summary_panel
 
     def transfer_process_flow_to_html(self, dest_dir):
 
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir, 0o744)
 
-        env=Environment(loader=FileSystemLoader(template_path))
-        template=env.get_template('process_flow.html')
-        result=template.render(first_panel=self.first_panel.to_json())
+        env = Environment(loader=FileSystemLoader(template_path))
+        template = env.get_template('process_flow.html')
+        result = template.render(first_panel=self.first_panel.to_json())
 
         # create process_flow.html
-        dest_filepath=os.path.join(dest_dir, 'process_flow.html')
+        dest_filepath = os.path.join(dest_dir, 'process_flow.html')
         with open(dest_filepath, 'w') as f:
             f.write(result)
 
         # copy statc resource
-        dest_static_path=os.path.join(dest_dir, 'static')
+        dest_static_path = os.path.join(dest_dir, 'static')
         if os.path.exists(dest_static_path):
             shutil.rmtree(dest_static_path)
         shutil.copytree(static_path, dest_static_path)

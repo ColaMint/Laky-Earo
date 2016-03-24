@@ -52,7 +52,7 @@ class TestHandler(unittest.TestCase):
         self.assertIsNotNone(handler_runtime.end_time)
         self.assertIsNone(handler_runtime.exception)
         self.assertTrue(handler_runtime.succeeded)
-        self.assertGreater(handler_runtime.time_cost, 0)
+        self.assertGreaterEqual(handler_runtime.time_cost, 0)
 
     def test_handle_unexcepted_event(self):
 
@@ -90,7 +90,7 @@ class TestHandler(unittest.TestCase):
         self.assertIsNotNone(handler_runtime.end_time)
         self.assertIsNotNone(handler_runtime.exception)
         self.assertFalse(handler_runtime.succeeded)
-        self.assertGreater(handler_runtime.time_cost, 0)
+        self.assertGreaterEqual(handler_runtime.time_cost, 0)
 
     def test_no_emittion(self):
 

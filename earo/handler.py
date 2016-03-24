@@ -4,6 +4,7 @@
 import inspect
 import traceback
 from datetime import datetime
+from util import datetime_delta_ms
 
 
 class NoEmittion(object):
@@ -56,7 +57,7 @@ class HandlerRuntime(object):
     @property
     def time_cost(self):
         if self.begin_time is not None and self.end_time is not None:
-            return (self.end_time - self.begin_time).microseconds
+            return datetime_delta_ms(self.end_time, self.begin_time)
         else:
             return -1
 

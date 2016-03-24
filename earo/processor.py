@@ -3,6 +3,7 @@
 
 import pickle
 from enum import Enum
+from util import datetime_delta_ms
 
 
 class NodeType(Enum):
@@ -57,6 +58,13 @@ class Processor(object):
             elif node.type == NodeType.Handler:
                 handler = node.inactive_item
                 handler_runtime = handler.handle(context, event)
+
+                if process_flow.begin_time is None:
+                    process_flow.begin_time = handler_runtime.begin_time
+                if handler_runtime.exception is not None:
+                    process_flow.total_exception += 1
+                process_flow.end_time = handler_runtime.end_time
+
                 node.active_item = handler_runtime
                 for emitted_event in handler_runtime.emittions:
                     event_cls = type(emitted_event)
@@ -82,7 +90,9 @@ class Processor(object):
 class ProcessFlow(object):
 
     def __init__(self, mediator, source_event_cls):
-
+        self.begin_time = None
+        self.end_time = None
+        self.total_exception = 0;
         self.__build_node(mediator, source_event_cls)
 
     def __build_node(self, mediator, source_event_cls):
@@ -133,6 +143,17 @@ class ProcessFlow(object):
                 raise TypeError('Unknown NodeType: `%s`.' % (node.type,))
 
         build_emittion_index_recursively(self.root)
+
+    @property
+    def active(self):
+        return self.root.active
+
+    @property
+    def total_time_cost(self):
+        if self.begin_time is not None and self.end_time is not None:
+            return datetime_delta_ms(self.end_time, self.begin_time)
+        else:
+            return -1
 
     def find_event(self, event_cls):
         return self.__emittions[event_cls] \

@@ -1,0 +1,19 @@
+.panel {
+    position: absolute;
+    width: 360px;
+}
+h3 {
+    word-break: break-word;
+}   
+.cable {
+    position: absolute;
+    width: 4px;
+    background-color: #EE8262;
+}
+.circle {
+    position: absolute;
+    border-radius: 50%; 
+    width:10px;
+    height:10px;
+    background-color: #EE8262;
+}
