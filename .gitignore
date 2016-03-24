@@ -58,3 +58,6 @@ target/
 
 # ctag
 earo/tags
+
+# vim swp
+*.swp

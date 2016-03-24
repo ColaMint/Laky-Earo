@@ -14,16 +14,18 @@ template_path = os.path.join(
 
 static_path = os.path.join(template_path, 'static')
 
+
 class Color(Enum):
-    Red     = 1
-    Blue    = 2
-    Green   = 3
-    Yellow  = 4
-    Grey    = 5
+    Red = 1
+    Blue = 2
+    Green = 3
+    Yellow = 4
+    Grey = 5
+
 
 class ContentType(Enum):
-    Text  = 1;
-    Table = 2;
+    Text = 1
+    Table = 2
 
 
 class Content(object):
@@ -47,6 +49,7 @@ class Content(object):
 
         return content_dict
 
+
 class TextContent(Content):
 
     def __init__(self, text=''):
@@ -56,6 +59,7 @@ class TextContent(Content):
     @property
     def text(self):
         return self.__params__['text']
+
 
 class TableContent(Content):
 
@@ -78,6 +82,7 @@ class TableContent(Content):
     def append_table_row(self, table_row):
         self.__params__['table_rows'].append([str(v) for v in table_row])
 
+
 class Panel(object):
 
     def __init__(self, node):
@@ -89,12 +94,12 @@ class Panel(object):
         self.__parse_node(node)
 
     def __parse_node(self, node):
-            if node.type == NodeType.Event:
-                self.__parse_event_node(node)
-            elif node.type == NodeType.Handler:
-                self.__parse_handler_node(node)
-            else:
-                raise TypeError('Unknown NodeType: `%s`.' % (node.type,))
+        if node.type == NodeType.Event:
+            self.__parse_event_node(node)
+        elif node.type == NodeType.Handler:
+            self.__parse_handler_node(node)
+        else:
+            raise TypeError('Unknown NodeType: `%s`.' % (node.type,))
 
     def __parse_event_node(self, event_node):
         event_cls = event_node.inactive_item
@@ -122,8 +127,11 @@ class Panel(object):
             self.color = Color.Green if handler_runtime.succeeded else Color.Red
             self.body = TableContent(table_head=('Field', 'Value'))
             self.body.append_table_row(('exception', handler_runtime.exception))
-            self.body.append_table_row(('no_emittions', handler_runtime.no_emittions))
-            self.body.append_table_row(('time_cost', '%s ms' % handler_runtime.time_cost))
+            self.body.append_table_row(
+                ('no_emittions', handler_runtime.no_emittions))
+            self.body.append_table_row(
+                ('time_cost', '%s ms' %
+                 handler_runtime.time_cost))
         else:
             self.color = Color.Grey
 
@@ -140,7 +148,8 @@ class Panel(object):
         }
         panel_dict['title'] = None if self.title is None else self.title.to_dict()
         panel_dict['body'] = None if self.body is None else self.body.to_dict()
-        panel_dict['footer'] = None if self.footer is None else self.footer.to_dict()
+        panel_dict[
+            'footer'] = None if self.footer is None else self.footer.to_dict()
         for next_panel in self.next_panels:
             panel_dict['next_panels'].append(next_panel.to_dict())
         return panel_dict
