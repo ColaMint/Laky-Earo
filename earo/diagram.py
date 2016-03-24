@@ -85,12 +85,37 @@ class TableContent(Content):
 
 class Panel(object):
 
-    def __init__(self, node):
+    def __init__(self):
         self.color = None
         self.title = None
         self.body = None
         self.footer = None
         self.next_panels = []
+
+    def append_next_panel(self, panel):
+        self.next_panels.append(panel)
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
+
+    def to_dict(self):
+        panel_dict = {
+            'color': self.color,
+            'next_panels': []
+        }
+        panel_dict['title'] = None if self.title is None else self.title.to_dict()
+        panel_dict['body'] = None if self.body is None else self.body.to_dict()
+        panel_dict[
+            'footer'] = None if self.footer is None else self.footer.to_dict()
+        for next_panel in self.next_panels:
+            panel_dict['next_panels'].append(next_panel.to_dict())
+        return panel_dict
+
+
+class NodePanel(Panel):
+
+    def __init__(self, node):
+        super(NodePanel, self).__init__()
         self.__parse_node(node)
 
     def __parse_node(self, node):
@@ -124,70 +149,69 @@ class Panel(object):
 
         if handler_node.active:
             handler_runtime = handler_node.active_item
-            self.color = Color.Green if handler_runtime.succeeded else Color.Red
-            self.body = TableContent(table_head=('Field', 'Value'))
-            self.body.append_table_row(('exception', handler_runtime.exception))
-            self.body.append_table_row(
-                ('no_emittions', handler_runtime.no_emittions))
-            self.body.append_table_row(
-                ('time_cost', '%s ms' %
-                 handler_runtime.time_cost))
+            if handler_runtime.succeeded:
+                self.color = Color.Green
+                self.body = TableContent(table_head=('Field', 'Value'))
+                self.body.append_table_row(
+                    ('no_emittions', handler_runtime.no_emittions))
+                self.body.append_table_row(
+                    ('time_cost', '%s ms' %
+                    handler_runtime.time_cost))
+            else:
+                self.color = Color.Red
+                self.body = TextContent(str(handler_runtime.exception))
         else:
             self.color = Color.Grey
 
-    def append_next_panel(self, panel):
-        self.next_panels.append(panel)
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
+class SummaryPanel(Panel):
 
-    def to_dict(self):
-        panel_dict = {
-            'color': self.color,
-            'next_panels': []
-        }
-        panel_dict['title'] = None if self.title is None else self.title.to_dict()
-        panel_dict['body'] = None if self.body is None else self.body.to_dict()
-        panel_dict[
-            'footer'] = None if self.footer is None else self.footer.to_dict()
-        for next_panel in self.next_panels:
-            panel_dict['next_panels'].append(next_panel.to_dict())
-        return panel_dict
+    def __init__(self, total_time_cost=-1, total_exception=0):
+        super(SummaryPanel, self).__init__()
+        self.total_time_cost = total_time_cost
+        self.total_exception = total_exception
+        self.__parse_summary()
 
+    def __parse_summary(self):
+        self.color = Color.Yellow
+        self.title = TextContent('total_time_cost: %d ms; total_exception: %d' % (
+                        self.total_time_cost, self.total_exception))
 
 class Diagram(object):
 
     def __init__(self, process_flow):
-        self.process_flow = process_flow
+        self.process_flow=process_flow
         self.__build_panel()
 
     def __build_panel(self):
 
-        def build_panel_recursively(node):
-            panel = Panel(node)
+        def build_node_panel_recursively(node):
+            panel = NodePanel(node)
             for child_node in node.child_nodes:
-                next_panel = build_panel_recursively(child_node)
+                next_panel=build_node_panel_recursively(child_node)
                 panel.append_next_panel(next_panel)
             return panel
 
-        self.first_panel = build_panel_recursively(self.process_flow.root)
+        self.first_panel = SummaryPanel(0, 0)
+        self.first_node_panel = build_node_panel_recursively(self.process_flow.root)
+        self.first_panel.append_next_panel(self.first_node_panel)
 
     def transfer_process_flow_to_html(self, dest_dir):
 
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir, 0o744)
 
-        env = Environment(loader=FileSystemLoader(template_path))
-        template = env.get_template('process_flow.html')
-        result = template.render(first_panel=self.first_panel.to_json())
+        env=Environment(loader=FileSystemLoader(template_path))
+        template=env.get_template('process_flow.html')
+        result=template.render(first_panel=self.first_panel.to_json())
 
         # create process_flow.html
-        dest_filepath = os.path.join(dest_dir, 'process_flow.html')
+        dest_filepath=os.path.join(dest_dir, 'process_flow.html')
         with open(dest_filepath, 'w') as f:
             f.write(result)
 
         # copy statc resource
-        dest_static_path = os.path.join(dest_dir, 'static')
+        dest_static_path=os.path.join(dest_dir, 'static')
         if os.path.exists(dest_static_path):
             shutil.rmtree(dest_static_path)
         shutil.copytree(static_path, dest_static_path)

@@ -11,6 +11,18 @@
             h3 {
                 word-break: break-word;
             }   
+            .cable {
+                position: absolute;
+                width: 4px;
+                background-color: #EE8262;
+            }
+            .circle {
+                position: absolute;
+                border-radius: 50%; 
+                width:10px;
+                height:10px;
+                background-color: #EE8262;
+            }
         </style>
     </head>
     <body>
@@ -38,9 +50,10 @@
         }
 
         function build_panel(first_panel) {
-            col_offset = 120; // 120 px
-            row_offset = 40;
-            bottom_of_col = new Array()  
+            var body_padding_left = 50;
+            var col_offset = 180; 
+            var row_offset = 40;
+            var bottom_of_col = new Array()  
 
             var color_to_class = function(color) {
                 color_class = null;
@@ -97,13 +110,13 @@
                 }
             }
 
-            var build_panel_recursively = function(panel, row, col) {
-                x = 120 * col; 
-                y = 0;
+            var build_panel_recursively = function(panel, row, col, last_panel_tail_x = -1, last_panel_tail_y = -1) {
+                var x = col_offset * col + body_padding_left; 
+                var y = 0;
 
-                    for (var i = 0; i < bottom_of_col.length; ++i) {
-                        y = Math.max(y, bottom_of_col[i]); 
-                    } 
+                for (var i = 0; i < bottom_of_col.length; ++i) {
+                    y = Math.max(y, bottom_of_col[i]); 
+                } 
 
                 y += row_offset;
 
@@ -131,11 +144,33 @@
                     dom_panel.append(dom_footer);
                 }
 
-                bottom = y + dom_panel.height();
+                var height = dom_panel.height();
+                var bottom = y + height;
                 bottom_of_col[col] = bottom;
-				
+
+                if (last_panel_tail_x > 0 
+                    && last_panel_tail_y > 0
+                ) {
+                    var panel_left_mid_x = x;
+                    var panel_left_mid_y = y + height / 2;
+
+                    var cable_left = x;
+                    var cable_top = last_panel_tail_y;
+                    var cable_height = y + height / 2 - last_panel_tail_y;
+                    var cable = $("<div class=\"cable\" style=\"left:{0}px;top:{1}px;height:{2}px;\"></div>".format(cable_left - 2, cable_top - 2, cable_height));
+                    $("body").append(cable);
+
+                    var start_point = $("<div class=\"circle\" style=\"left:{0}px;top:{1}px;\"></div>".format(last_panel_tail_x - 5, last_panel_tail_y - 3));
+                    $("body").append(start_point);
+
+                    var end_point = $("<div class=\"circle\" style=\"left:{0}px;top:{1}px;\"></div>".format(panel_left_mid_x - 5, panel_left_mid_y - 5));
+                    $("body").append(end_point);
+                }
+				 
+                var panel_tail_x = x + col_offset 
+                var panel_tail_y = bottom
                 for (var i = 0; i < panel.next_panels.length; ++i) {
-					build_panel_recursively(panel.next_panels[i], row + i + 1, col + 1);
+					build_panel_recursively(panel.next_panels[i], row + i + 1, col + 1, panel_tail_x, panel_tail_y);
 				}
             }
             build_panel_recursively(first_panel, 0, 0)
