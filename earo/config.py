@@ -20,11 +20,12 @@ limitations under the License.
 class Config(object):
 
     __config__ = {
-        'app_name': 'earo'
+        'app_name': 'earo',
+        'processors_tag_regex': ()
     }
 
-    def __init__(self, config={}):
-        for key, value in config.iteritems():
+    def __init__(self, **kwargs):
+        for key, value in kwargs.iteritems():
             self.__setattr__(key, value)
 
     def __getattr__(self, key):

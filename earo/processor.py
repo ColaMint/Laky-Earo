@@ -19,6 +19,8 @@ limitations under the License.
 import pickle
 from enum import Enum
 from util import datetime_delta_ms
+import atomic
+import re
 
 
 class NodeType(Enum):
@@ -27,6 +29,13 @@ class NodeType(Enum):
 
 
 class Node(object):
+    """
+    Each Node holds an `inactive_item` and an `active_item`.
+    `inactive_item` should always not be None.
+    When `active_item` is None, this None is considered inactive,
+    otherwise, it is active.
+    Node is a node of a tree, so it has `child_nodes`.
+    """
 
     def __init__(self, inactive_item, child_nodes=[]):
         self.inactive_item = inactive_item
@@ -35,14 +44,26 @@ class Node(object):
 
     @property
     def active(self):
+        """
+        Whether this node is active or not.
+        """
         return self.active_item is not None
 
     @property
     def type(self):
+        """
+        This function should be implemented in subclass.
+        return one value of :class:`NodeType`.
+        """
         raise NotImplemented
 
 
 class EventNode(Node):
+    """
+    Subclass of :class:`Node`.
+    `inactive_item` should be the class of a :class:`earo.event.Event`'s subclass.
+    `active_item` should be the instance of a :class:`earo.event.Event`'s subclass.
+    """
 
     @property
     def type(self):
@@ -50,6 +71,11 @@ class EventNode(Node):
 
 
 class HandlerNode(Node):
+    """
+    Subclass of :class:`Node`.
+    `inactive_item` should be the instance of :class:`earo.handler.Handler`.
+    `active_item` should be the instance of :class:`earo.handler.HandlerRuntime`.
+    """
 
     @property
     def type(self):
@@ -58,8 +84,20 @@ class HandlerNode(Node):
 
 class Processor(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, tag_regex):
+        self.tag_regex = tag_regex
+        self._tag_pattern = re.compile(self.tag_regex)
+        self._process_count = atomic.AtomicLong(0)
+        self._exception_count = atomic.AtomicLong(0)
+        self._event_process_count = {}
+        self._event_exception_count = {}
+        self._event_min_time_cost = {}
+        self._event_max_time_cost= {}
+
+    def match_event_tag(self, event):
+        return self._tag_pattern.match(event.tag) is not None \
+                if event.tag is not None \
+                else False
 
     def process(self, context):
 
@@ -77,7 +115,7 @@ class Processor(object):
                 if process_flow.begin_time is None:
                     process_flow.begin_time = handler_runtime.begin_time
                 if handler_runtime.exception is not None:
-                    process_flow.total_exception += 1
+                    process_flow.exception_count += 1
                 process_flow.end_time = handler_runtime.end_time
 
                 node.active_item = handler_runtime
@@ -98,19 +136,66 @@ class Processor(object):
                 raise TypeError('Unknown NodeType: `%s`.' % (node.type,))
 
         process_node_recursively(process_flow.root, context.source_event)
-        process_flow.build_emittion_index()
+
+        source_event_cls = type(context.source_event)
+        self._process_count += 1
+        if source_event_cls not in self._event_process_count:
+            self._event_process_count[source_event_cls] = atomic.AtomicLong(0)
+        self._event_process_count[source_event_cls] += 1
+        if source_event_cls not in self._event_exception_count:
+            self._event_exception_count[source_event_cls] = atomic.AtomicLong(0)
+        if process_flow.exception_count > 0:
+            self._exception_count += 1
+            self._event_exception_count[source_event_cls] += 1
+        if process_flow.time_cost >= 0:
+            if source_event_cls not in self._event_min_time_cost \
+                    or process_flow.time_cost < self._event_min_time_cost[source_event_cls]:
+                self._event_min_time_cost[source_event_cls] = process_flow.time_cost
+            if source_event_cls not in self._event_max_time_cost \
+                    or process_flow.time_cost > self._event_max_time_cost[source_event_cls]:
+                self._event_max_time_cost[source_event_cls] = process_flow.time_cost
+
+        process_flow.after_process()
         return process_flow
 
+    @property
+    def process_count(self):
+        return self._process_count.value
+
+    @property
+    def exception_count(self):
+        return self._exception_count.value
+
+    def event_process_count(self, source_event_cls):
+        return self._event_process_count[source_event_cls].value \
+            if source_event_cls in self._event_process_count \
+            else 0
+
+    def event_exception_count(self, source_event_cls):
+        return self._event_exception_count[source_event_cls].value \
+            if source_event_cls in self._event_exception_count \
+            else 0
+
+    def event_min_time_cost(self, source_event_cls):
+        return self._event_min_time_cost[source_event_cls] \
+            if source_event_cls in self._event_min_time_cost \
+            else -1
+
+    def event_max_time_cost(self, source_event_cls):
+        return self._event_max_time_cost[source_event_cls] \
+            if source_event_cls in self._event_max_time_cost\
+            else -1
 
 class ProcessFlow(object):
 
     def __init__(self, mediator, source_event_cls):
         self.begin_time = None
         self.end_time = None
-        self.total_exception = 0;
-        self.__build_node(mediator, source_event_cls)
+        self.exception_count = 0
+        self._time_cost = -1
+        self._build_nodes(mediator, source_event_cls)
 
-    def __build_node(self, mediator, source_event_cls):
+    def _build_nodes(self, mediator, source_event_cls):
 
         def build_node_recursively(inactive_item, node_type):
             if node_type == NodeType.Event:
@@ -134,14 +219,15 @@ class ProcessFlow(object):
 
         self.root = build_node_recursively(source_event_cls, NodeType.Event)
 
-    def build_emittion_index(self):
+    def after_process(self):
+        self._build_emittion_index()
+
+    def _build_emittion_index(self):
 
         self.__emittions = {}
         self.__no_emittions = {}
 
         def build_emittion_index_recursively(node):
-            if not node.active:
-                return
             if node.type == NodeType.Event:
                 event = node.active_item
                 event_cls = type(event)
@@ -149,11 +235,12 @@ class ProcessFlow(object):
                 for handler_node in node.child_nodes:
                     build_emittion_index_recursively(handler_node)
             elif node.type == NodeType.Handler:
-                handler_runtime = node.active_item
-                for event_cls, msg in handler_runtime.no_emittions.iteritems():
-                    self.__no_emittions[event_cls] = msg
-                for event_node in node.child_nodes:
-                    build_emittion_index_recursively(event_node)
+                if node.active:
+                    handler_runtime = node.active_item
+                    for event_cls, msg in handler_runtime.no_emittions.iteritems():
+                        self.__no_emittions[event_cls] = msg
+                    for event_node in node.child_nodes:
+                        build_emittion_index_recursively(event_node)
             else:
                 raise TypeError('Unknown NodeType: `%s`.' % (node.type,))
 
@@ -164,11 +251,12 @@ class ProcessFlow(object):
         return self.root.active
 
     @property
-    def total_time_cost(self):
-        if self.begin_time is not None and self.end_time is not None:
-            return datetime_delta_ms(self.end_time, self.begin_time)
-        else:
-            return -1
+    def time_cost(self):
+        if self._time_cost < 0 \
+            and self.begin_time is not None \
+            and self.end_time is not None:
+            self._time_cost = datetime_delta_ms(self.end_time, self.begin_time)
+        return self._time_cost
 
     def find_event(self, event_cls):
         return self.__emittions[event_cls] \

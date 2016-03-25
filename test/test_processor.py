@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 
 import unittest
-from earo.event import Event
+from earo.event import Event, Field
 from earo.handler import Handler, Emittion, NoEmittion
 from earo.mediator import Mediator
 from earo.context import Context
@@ -20,7 +20,7 @@ class TestProcessor(unittest.TestCase):
     def test_emit_excepted_events(self):
 
         mediator = Mediator()
-        processor = Processor()
+        processor = Processor('.+')
 
         class EventA(Event):
             pass
@@ -53,7 +53,7 @@ class TestProcessor(unittest.TestCase):
     def test_emit_unexcepted_events(self):
 
         mediator = Mediator()
-        processor = Processor()
+        processor = Processor('.+')
 
         class EventA(Event):
             pass
@@ -83,7 +83,7 @@ class TestProcessor(unittest.TestCase):
     def test_no_emittion(self):
 
         mediator = Mediator()
-        processor = Processor()
+        processor = Processor('.+')
 
         class EventA(Event):
             pass
@@ -114,7 +114,7 @@ class TestProcessor(unittest.TestCase):
     def test_process_flow_active(self):
 
         mediator = Mediator()
-        processor = Processor()
+        processor = Processor('.+')
 
         class EventA(Event):
             pass
@@ -278,6 +278,70 @@ class TestProcessor(unittest.TestCase):
         self.assertFalse(handler_node_5.active)
         self.assertFalse(handler_node_6.active)
         self.assertFalse(handler_node_7.active)
+
+    def test_processor_statistics(self):
+
+        mediator = Mediator()
+        processor = Processor('.+')
+
+        class EventA(Event):
+            sleep_seconds = Field(float, 0.05)
+            raise_exception = Field(bool, False)
+
+        class EventB(Event):
+            pass
+
+        def fooA_B(context, event):
+            import time
+            time.sleep(event.sleep_seconds)
+            if event.raise_exception:
+                raise Exception()
+            return NoEmittion(EventB, 'test')
+
+        def fooB(context, event):
+            pass
+
+        handler_a = Handler(EventA, fooA_B, [EventB])
+        handler_b = Handler(EventB, fooB)
+
+        mediator.register_event_handler(
+            handler_a,
+            handler_b
+        )
+
+        self.assertEqual(processor.process_count, 0)
+        self.assertEqual(processor.exception_count, 0)
+        self.assertEqual(processor.event_process_count(EventA), 0)
+        self.assertEqual(processor.event_process_count(EventB), 0)
+        self.assertEqual(processor.event_exception_count(EventA), 0)
+        self.assertEqual(processor.event_exception_count(EventB), 0)
+        self.assertEqual(processor.event_min_time_cost(EventA), -1)
+        self.assertEqual(processor.event_min_time_cost(EventB), -1)
+        self.assertEqual(processor.event_max_time_cost(EventA), -1)
+        self.assertEqual(processor.event_max_time_cost(EventB), -1)
+
+        for sleep_seconds, raise_exception in (
+                                    (0.01, False),
+                                    (0.05, False),
+                                    (0.02, True)):
+            context = Context(
+                mediator,
+                EventA(sleep_seconds=sleep_seconds,
+                        raise_exception=raise_exception),
+                processor)
+            context.process()
+
+        self.assertEqual(processor.process_count, 3)
+        self.assertEqual(processor.exception_count, 1)
+        self.assertEqual(processor.event_process_count(EventA), 3)
+        self.assertEqual(processor.event_process_count(EventB), 0)
+        self.assertEqual(processor.event_exception_count(EventA), 1)
+        self.assertEqual(processor.event_exception_count(EventB), 0)
+        self.assertLess(processor.event_min_time_cost(EventA), 15)
+        self.assertEqual(processor.event_min_time_cost(EventB), -1)
+        self.assertGreaterEqual(processor.event_max_time_cost(EventA), 50)
+        self.assertEqual(processor.event_max_time_cost(EventB), -1)
+
 
 if __name__ == '__main__':
     unittest.main()

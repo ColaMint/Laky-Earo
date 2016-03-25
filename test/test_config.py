@@ -20,7 +20,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config.app_name, 'test')
 
     def test_config_with_init_value(self):
-        config = Config(config={'app_name': 'test'})
+        config = Config(app_name='test')
         self.assertEqual(config.app_name, 'test')
         config.app_name = 'money'
         self.assertEqual(config.app_name, 'money')

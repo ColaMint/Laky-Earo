@@ -21,7 +21,7 @@ class TestDiagram(unittest.TestCase):
     def test_active_process_flow(self):
 
         mediator = Mediator()
-        processor = Processor()
+        processor = Processor('.+')
 
         class EventA(Event):
             event_a_field = Field(int, 100);

@@ -219,9 +219,9 @@ class SummaryPanel(Panel):
             self.body.append_table_row(
                 ('begin_time', process_flow.begin_time.strftime('%Y-%m-%d %H:%M:%S')))
             self.body.append_table_row(
-                ('total_time_cost', '%d ms' % process_flow.total_time_cost))
+                ('time_cost', '%d ms' % process_flow.time_cost))
             self.body.append_table_row(
-                ('total_exception', process_flow.total_exception))
+                ('exception_count', process_flow.exception_count))
         else:
             self.title = TextContent('Processor Flow Preview')
 
@@ -231,13 +231,13 @@ class Diagram(object):
     def __init__(self, process_flow=None, json=None):
         self.process_flow = process_flow
         if process_flow:
-            self.__from_process_flow(process_flow)
+            self._from_process_flow(process_flow)
         elif json:
             self.json = json
         else:
-            raise AttributeError('both `process_flow` and `json` is None')
+            raise AttributeError('both `process_flow` and `json` are None')
 
-    def __from_process_flow(self, process_flow):
+    def _from_process_flow(self, process_flow):
 
         def build_node_panel_recursively(node):
             panel = NodePanel(process_flow, node)
@@ -259,7 +259,7 @@ class Diagram(object):
 
         env = Environment(loader=FileSystemLoader(template_path))
         template = env.get_template('process_flow.html')
-        result = template.render(diagram=self.json)
+        result = template.render(root_panel=self.json)
 
         # create process_flow.html
         dest_filepath = os.path.join(dest_dir, 'process_flow.html')

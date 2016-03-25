@@ -15,6 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import copy
 
 
 class Field(object):
@@ -47,6 +48,8 @@ class EventMetaClass(type):
         new_attrs['__fields__'] = fields
         new_attrs['__mappings__'] = mappings
         new_attrs['__params__'] = params
+        new_attrs['__tag__'] = attrs['__tag__'] if '__tag__' in attrs \
+                                                else name
         return super(EventMetaClass, cls).__new__(cls, name, bases, new_attrs)
 
 
@@ -77,4 +80,8 @@ class Event(object):
 
     @property
     def params(self):
-        return self.__params__
+        return copy.deepcopy(self.__params__)
+
+    @property
+    def tag(self):
+        return self.__tag__

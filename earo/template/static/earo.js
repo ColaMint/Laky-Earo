@@ -114,7 +114,7 @@ function make_point(left, top) {
     return point;
 }
 
-function build_panels(first_panel) {
+function build_panels(root_panel) {
     var body_padding_left = 50;
     var col_offset = 180; 
     var row_offset = 40;
@@ -186,6 +186,6 @@ function build_panels(first_panel) {
             build_panel_recursively(panel.next_panels[i], row + i + 1, col + 1, panel_tail_x, panel_tail_y);
         }
     }
-    build_panel_recursively(first_panel, 0, 0)
+    build_panel_recursively(root_panel, 0, 0)
 }
 

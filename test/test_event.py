@@ -13,7 +13,7 @@ class TestEvent(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test(self):
+    def test_field(self):
 
         class AEvent(Event):
             str_field = Field(str, 'test')
@@ -68,6 +68,20 @@ class TestEvent(unittest.TestCase):
             class BEvent(Event):
                 str_field = Field(dict, 100)
             BEvent()
+
+        def test_tag(self):
+
+            class EventA(Event):
+                pass
+
+            event_a = EventA()
+            self.assertEqual(event_a.tag, 'EventA')
+
+            class EventB(Event):
+                __tag__ = 'test_tag'
+
+            event_b = EventB()
+            self.assertEqual(event_b.tag, 'test_tag')
 
 if __name__ == '__main__':
     unittest.main()
