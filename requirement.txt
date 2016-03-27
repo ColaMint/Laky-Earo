@@ -1,4 +1,5 @@
 Jinja2
 enum
 atomic
+sphinx
 sphinx_rtd_theme
