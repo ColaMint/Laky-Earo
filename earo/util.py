@@ -21,7 +21,7 @@ from datetime import datetime
 
 def datetime_delta_ms(d1, d2):
     """
-    both `d1` and `d2 must be an instance of `datetime.datetime`.
+    Both `d1` and `d2 must be an instance of `datetime.datetime`.
     return the millisecond(s) between `d1` and `d2`.
     """
 

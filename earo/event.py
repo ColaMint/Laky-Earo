@@ -21,6 +21,19 @@ import copy
 
 
 class Field(object):
+    """
+    The field object of :class:`Event`.
+    """
+
+    field_type = None
+    """
+    The class of the field.
+    """
+
+    default = None
+    """
+    The default value of the filed.
+    """
 
     def __init__(self, field_type, default=None):
         self.field_type = field_type
@@ -28,12 +41,20 @@ class Field(object):
         self.default = default
 
     def match(self, value):
+        """
+        Raise an :class:`TypeError` is `value` is not an instance of `self.field_type`.
+
+        :param value: The value to match.
+        """
         if not isinstance(value, self.field_type):
             raise TypeError('expect %s, not %s' %
                             (self.field_type, type(value)))
 
 
 class EventMetaClass(type):
+    """
+    The metaclass to help new :class:`Event`.
+    """
 
     def __new__(cls, name, bases, attrs):
         fields = []
@@ -56,6 +77,9 @@ class EventMetaClass(type):
 
 
 class Event(object):
+    """
+    The base class of specific event.
+    """
 
     __metaclass__ = EventMetaClass
 
@@ -82,8 +106,14 @@ class Event(object):
 
     @property
     def params(self):
+        """
+        A `dict` which is a deep copy of the event's params.
+        """
         return copy.deepcopy(self.__params__)
 
     @property
     def tag(self):
+        """
+        The tag of the event.
+        """
         return self.__tag__

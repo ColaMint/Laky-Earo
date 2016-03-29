@@ -25,65 +25,142 @@ import re
 
 
 class NodeType(Enum):
+    """
+    Enum type of :class:`Node`
+    """
+
     Event = 1
     Handler = 2
 
 
 class Node(object):
     """
-    Each Node holds an `inactive_item` and an `active_item`.
-    `inactive_item` should always not be None.
-    When `active_item` is None, this None is considered inactive,
+    :class:`Node` holds an `inactive_item` and an `active_item`.
+    `inactive_item` should be always not None.
+    When `active_item` is None, this :class:`Node` is considered inactive,
     otherwise, it is active.
-    Node is a node of a tree, so it has `child_nodes`.
+    :class:`Node` is a node of a tree, so it has `child_nodes`.
     """
 
-    def __init__(self, inactive_item, child_nodes=[]):
+    inactive_item = None
+    """
+    the inactive item.
+    """
+
+    active_item = None
+    """
+    the active item.
+    """
+
+    child_nodes = None
+    """
+    A list of child :class:`None`.
+    """
+
+    def __init__(self, inactive_item, child_nodes=None):
         self.inactive_item = inactive_item
         self.active_item = None
-        self.child_nodes = child_nodes
+        self.child_nodes = [] if child_nodes is None else child_nodes
 
     @property
     def active(self):
         """
-        Whether this node is active or not.
+        whether this node is active or not.
         """
         return self.active_item is not None
 
     @property
     def type(self):
         """
-        This function should be implemented in subclass.
-        return one value of :class:`NodeType`.
+        one of :class:`NodeType`.
         """
         raise NotImplemented
 
 
 class EventNode(Node):
     """
-    Subclass of :class:`Node`.
-    `inactive_item` should be the class of a :class:`earo.event.Event`'s subclass.
-    `active_item` should be the instance of a :class:`earo.event.Event`'s subclass.
+    `inactive_item` should be the class of :class:`earo.event.Event`'s subclass.
+    `active_item` should be an instance of :class:`earo.event.Event`'s subclass.
     """
 
     @property
     def type(self):
+        """
+        return :class:`NodeType`.Event
+        """
         return NodeType.Event
 
 
 class HandlerNode(Node):
     """
-    Subclass of :class:`Node`.
-    `inactive_item` should be the instance of :class:`earo.handler.Handler`.
-    `active_item` should be the instance of :class:`earo.handler.HandlerRuntime`.
+    `inactive_item` should be an instance of :class:`earo.handler.Handler`.
+    `active_item` should be an instance of :class:`earo.handler.HandlerRuntime`.
     """
 
     @property
     def type(self):
+        """
+        return :class:`NodeType`.Handler
+        """
         return NodeType.Handler
 
 
 class Processor(object):
+    """
+    :class:`Processor` is responsible for making :class:`ProcessFlow` and the
+    statistics of :class:`ProcessFlow`s it processed.
+    """
+
+    tag_regex = None
+    """
+    The regular expression for :class:`earo.event.Event`.__tag__.
+    :class:`Processor` only process those events whose tag is match `tag_regex`.
+    This feature is implemented by :class:`earo.app.App`.
+    """
+
+    _process_count = None
+    """
+    The number of those :class:`ProcessFlow`s maked by this :class:`Processor`.
+    """
+
+    _exception_count = None
+    """
+    The number of those :class:`ProcessFlow`s maked by this :class:`Processor`
+    and have raised exception.
+    """
+
+    _event_process_count = None
+    """
+    A `dict`.
+    The `key` is the class of :class:`earo.event.Event`'s subclass.
+    The `value` is the number of those :class:`ProcessFlow`
+    maked by this :class:`Processor, whose source event is an instance of the `key`.
+    """
+
+    _event_exception_count = None
+    """
+    A `dict`.
+    The `key` is the class of :class:`earo.event.Event`'s subclass.
+    The `value` is the number of those :class:`ProcessFlow`s
+    maked by this :class:`Processor`, whose source event is an instance of the
+    `key` and that have raised exception.
+    """
+
+    _event_min_time_cost = None
+    """
+    A `dict`.
+    The `key` is the class of :class:`earo.event.Event`'s subclass.
+    The `value` is the min time cost(in milliseconds) of those :class:`ProcessFlow`
+    maked by this :class:`Processor ab whose source event is an instance of the `key`.
+    """
+
+    _event_max_time_cost = None
+    """
+    A `dict`.
+    The `key` is the class of :class:`earo.event.Event`'s subclass.
+    The `value` is the min time cost(in milliseconds) of those :class:`ProcessFlow`
+    maked by this :class:`Processor, whose source event is an instance of the `key`.
+    """
 
     def __init__(self, tag_regex):
         self.tag_regex = tag_regex
@@ -93,14 +170,21 @@ class Processor(object):
         self._event_process_count = {}
         self._event_exception_count = {}
         self._event_min_time_cost = {}
-        self._event_max_time_cost= {}
+        self._event_max_time_cost = {}
 
     def match_event_tag(self, event):
+        """
+        Determine whether the `event`'s tag match `tag_regex`.
+        """
         return self._tag_pattern.match(event.tag) is not None \
-                if event.tag is not None \
-                else False
+            if event.tag is not None \
+            else False
 
     def process(self, context):
+        """
+        Process the :class:`earo.context.Context`, make a :class:`ProcessFlow` and
+        set it at :class:`earo.context.Context`.`process_flow`.
+        """
 
         process_flow = ProcessFlow(context.mediator, type(context.source_event))
 
@@ -151,52 +235,123 @@ class Processor(object):
         if process_flow.time_cost >= 0:
             if source_event_cls not in self._event_min_time_cost \
                     or process_flow.time_cost < self._event_min_time_cost[source_event_cls]:
-                self._event_min_time_cost[source_event_cls] = process_flow.time_cost
+                self._event_min_time_cost[
+                    source_event_cls] = process_flow.time_cost
             if source_event_cls not in self._event_max_time_cost \
                     or process_flow.time_cost > self._event_max_time_cost[source_event_cls]:
-                self._event_max_time_cost[source_event_cls] = process_flow.time_cost
+                self._event_max_time_cost[
+                    source_event_cls] = process_flow.time_cost
 
         process_flow.after_process()
         return process_flow
 
     @property
     def process_count(self):
+        """
+        The number of those :class:`ProcessFlow`s maked by this :class:`Processor`.
+        """
         return self._process_count.value
 
     @property
     def exception_count(self):
+        """
+        The number of those :class:`ProcessFlow`s maked by this :class:`Processor`
+        and have raised exception.
+        """
         return self._exception_count.value
 
     def event_process_count(self, source_event_cls):
+        """
+        The number of those :class:`ProcessFlow` maked by this :class:`Processor,
+        whose source event is an instance of the `source_event_cls`.
+        """
         return self._event_process_count[source_event_cls].value \
             if source_event_cls in self._event_process_count \
             else 0
 
     def event_exception_count(self, source_event_cls):
+        """
+        The number of those :class:`ProcessFlow` maked by this :class:`Processor,
+        whose source event is an instance of the `source_event_cls` and that have
+        raised exception.
+        """
         return self._event_exception_count[source_event_cls].value \
             if source_event_cls in self._event_exception_count \
             else 0
 
     def event_min_time_cost(self, source_event_cls):
+        """
+        The min time cost(in milliseconds)  of those :class:`ProcessFlow` maked
+        by this :class:`Processor, whose source event is an instance of the
+        `source_event_cls`.
+        """
         return self._event_min_time_cost[source_event_cls] \
             if source_event_cls in self._event_min_time_cost \
             else -1
 
     def event_max_time_cost(self, source_event_cls):
+        """
+        The max time cost(in milliseconds)  of those :class:`ProcessFlow` maked
+        by this :class:`Processor, whose source event is an instance of the
+        `source_event_cls`.
+        """
         return self._event_max_time_cost[source_event_cls] \
             if source_event_cls in self._event_max_time_cost\
             else -1
 
+
 class ProcessFlow(object):
 
+    root = None
+    """
+    The root :class:`EventNode`.
+    """
+
+    begin_time = None
+    """
+    An instance of :class:`~datetime.datetime`.
+    The time when the process begins.
+    """
+
+    end_time = None
+    """
+    An instance of :class:`~datetime.datetime`.
+    The time when the process ends.
+    """
+
+    _time_cost = -1
+    """
+    The time cost(in milliseconds) between self.`begin_time` and self.`end_time`.
+    """
+
+    exception_count = 0
+    """
+    The number of exceptions raised during process.
+    """
+
+    _emittions = None
+    """
+    A `dict` records events emitted during process.
+    The `key` is the class of :class:`earo.event.Event`'s subclass.
+    The value is an instance of :class:`earo.event.Event`.
+    """
+
+    _no_emittions = None
+    """
+    A `dict` records events which may be emitted but not emitted during process.
+    The `key` is the class of :class:`earo.event.Event`'s subclass.
+    The value is a `str` that indicates why the event was not emitted.
+    """
+
     def __init__(self, mediator, source_event_cls):
-        self.begin_time = None
-        self.end_time = None
-        self.exception_count = 0
-        self._time_cost = -1
+        self._emittions = {}
+        self._no_emittions = {}
         self._build_nodes(mediator, source_event_cls)
 
     def _build_nodes(self, mediator, source_event_cls):
+        """
+        Build nodes and set self.`root`.
+        """
 
         def build_node_recursively(inactive_item, node_type):
             if node_type == NodeType.Event:
@@ -221,25 +376,28 @@ class ProcessFlow(object):
         self.root = build_node_recursively(source_event_cls, NodeType.Event)
 
     def after_process(self):
+        """
+        Called by :class:`Processor` after process.
+        """
         self._build_emittion_index()
 
     def _build_emittion_index(self):
-
-        self.__emittions = {}
-        self.__no_emittions = {}
+        """
+        Build self.`_emittions` and self.`_no_emittions`.
+        """
 
         def build_emittion_index_recursively(node):
             if node.type == NodeType.Event:
                 event = node.active_item
                 event_cls = type(event)
-                self.__emittions[event_cls] = event
+                self._emittions[event_cls] = event
                 for handler_node in node.child_nodes:
                     build_emittion_index_recursively(handler_node)
             elif node.type == NodeType.Handler:
                 if node.active:
                     handler_runtime = node.active_item
                     for event_cls, msg in handler_runtime.no_emittions.iteritems():
-                        self.__no_emittions[event_cls] = msg
+                        self._no_emittions[event_cls] = msg
                     for event_node in node.child_nodes:
                         build_emittion_index_recursively(event_node)
             else:
@@ -249,31 +407,60 @@ class ProcessFlow(object):
 
     @property
     def active(self):
+        """
+        Whether this :class:`ProcessFlow` is active or not.
+        When the root :class:`Node` of this :class:`ProcessFlow` is active, it
+        is considered active, otherwise it is inactive.
+        """
         return self.root.active
 
     @property
     def time_cost(self):
+        """
+        The time cost(in milliseconds) between self.`begin_time` and self.`end_time`.
+        """
         if self._time_cost < 0 \
-            and self.begin_time is not None \
-            and self.end_time is not None:
+                and self.begin_time is not None \
+                and self.end_time is not None:
             self._time_cost = datetime_delta_ms(self.end_time, self.begin_time)
         return self._time_cost
 
     def find_event(self, event_cls):
-        return self.__emittions[event_cls] \
-            if event_cls in self.__emittions else None
+        """
+        Find the event in self.`_emittions`.
+        If the event was not emitted, return None.
+
+        :param event_cls: The class of the event to find.
+        """
+        return self._emittions[event_cls] \
+            if event_cls in self._emittions else None
 
     def why_no_emittion(self, event_cls):
-        return self.__no_emittions[event_cls] \
-            if event_cls in self.__no_emittions else None
+        """
+        return a `str` thiat indicates why the event was not emitted.
+        If no reason given, return None.
+
+        :param event_cls: The class of the event to find.
+        """
+        return self._no_emittions[event_cls] \
+            if event_cls in self._no_emittions else None
 
     def serialize(self):
+        """
+        Use `pickle` to serialize :class:`ProcessFlow`.
+        """
         return pickle.dumps(self)
 
     @staticmethod
-    def unserialize(str):
+    def unserialize(string):
+        """
+        Use `pickle` to unserialize :class:`ProcessFlow` from `string`.
+        If it fails, return None.
+
+        :param string: The string after serialization.
+        """
         try:
-            process_flow = pickle.loads(str)
+            process_flow = pickle.loads(strint)
             if not isinstance(process_flow, ProcessFlow):
                 return None
         except Exception:

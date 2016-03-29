@@ -18,11 +18,17 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 class Config(object):
+    """
+    The configration of the earo application.
+    """
 
     __config__ = {
         'app_name': 'earo',
         'processors_tag_regex': ()
     }
+    """
+    The default configuration.
+    """
 
     def __init__(self, **kwargs):
         for key, value in kwargs.iteritems():
