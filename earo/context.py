@@ -30,7 +30,7 @@ class Context(object):
 
     source_event = None
     """
-    The emitted by :class:`earo.app.App`.
+    The event emitted by :class:`earo.app.App`.
     """
 
     processor = None
