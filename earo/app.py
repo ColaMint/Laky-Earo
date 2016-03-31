@@ -20,7 +20,8 @@
 from mediator import Mediator
 from handler import Handler
 from context import Context
-from processor import Processor
+from processor import Processor, ProcessFlow
+from diagram import Diagram
 
 
 class App(object):
@@ -128,3 +129,15 @@ class App(object):
                 return processor
         return None
 
+    def build_process_flow_preview_html(self, source_event_cls, dest_dir):
+        """
+        Build the html, which allows you to preview the process flow of the
+        specific event, to the dest directory.
+
+        :param source_event_cls: The class of the source event of the process flow
+        you would like to preview.
+        :param dest_dir: The directory to save the html and some other static files.
+        """
+        process_flow = ProcessFlow(self.mediator, source_event_cls)
+        diagram = Diagram(process_flow=process_flow)
+        diagram.to_html(dest_dir)

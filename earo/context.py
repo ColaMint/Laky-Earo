@@ -17,6 +17,7 @@
 #   limitations under the License.                                            #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+from diagram import Diagram
 
 class Context(object):
     """
@@ -65,3 +66,13 @@ class Context(object):
         A reference to :func:`earo.processor.ProcessFlow.why_no_emittion`.
         """
         return self.process_flow.why_no_emittion(event_cls)
+
+    def build_process_flow_html(self, dest_dir):
+        """
+        Build the html, which allows you to actual process flow of the
+        specific event, to the dest directory.
+
+        :param dest_dir: The directory to save the html and some other static files.
+        """
+        diagram = Diagram(process_flow=self.process_flow)
+        diagram.to_html(dest_dir)
