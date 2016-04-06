@@ -17,6 +17,7 @@
 #   limitations under the License.                                            #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+
 class Config(object):
     """
     The configration of the earo application.
@@ -31,16 +32,19 @@ class Config(object):
     """
 
     def __init__(self, **kwargs):
+
         for key, value in kwargs.iteritems():
             self.__setattr__(key, value)
 
     def __getattr__(self, key):
+
         if key in self.__config__:
             return self.__config__[key]
         else:
             raise KeyError(key)
 
     def __setattr__(self, key, value):
+
         if key in self.__config__:
             self.__config__[key] = value
         else:

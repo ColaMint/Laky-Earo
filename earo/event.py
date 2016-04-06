@@ -36,6 +36,7 @@ class Field(object):
     """
 
     def __init__(self, field_type, default=None):
+
         self.field_type = field_type
         self.match(default)
         self.default = default
@@ -57,6 +58,7 @@ class EventMetaClass(type):
     """
 
     def __new__(cls, name, bases, attrs):
+
         fields = []
         mappings = {}
         params = {}
@@ -117,3 +119,10 @@ class Event(object):
         The tag of the event.
         """
         return self.__tag__
+
+    @property
+    def no_field(self):
+        """
+        return True if the event doesn't have any field.
+        """
+        return len(self.__params__) == 0

@@ -56,6 +56,7 @@ class App(object):
     """
 
     def __init__(self, config):
+
         self.mediator = Mediator()
         self.config = config
         self._init_with_config()
@@ -65,7 +66,6 @@ class App(object):
         #. Set `self.app_name` according to `self.config.app_name`.
         #. Set `self.processors` according to `self.config.processors_tag_regex`.
         """
-
         self.app_name = self.config.app_name
 
         self.processors = []

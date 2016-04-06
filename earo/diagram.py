@@ -154,23 +154,32 @@ class NodePanel(Panel):
             if event_node.active:
                 event = event_node.active_item
                 self.color = Color.Blue
-                self.body = TableContent(table_head=('Field', 'Value'))
-                for k, v in event.params.iteritems():
-                    self.body.append_table_row((k, v))
+                if event.no_field:
+                    pass
+                else:
+                    self.body = TableContent(table_head=('Field', 'Value'))
+                    for k, v in event.params.iteritems():
+                        self.body.append_table_row((k, v))
             else:
                 event = event_cls()
                 self.color = Color.Grey
-                self.body = TableContent(table_head=('Field', 'Default Value'))
-                for k, v in event.params.iteritems():
-                    self.body.append_table_row((k, v))
+                if event.no_field:
+                    pass
+                else:
+                    self.body = TableContent(table_head=('Field', 'Default Value'))
+                    for k, v in event.params.iteritems():
+                        self.body.append_table_row((k, v))
                 self.footer = TextContent('why no emittion: %s' %
                                 (process_flow.why_no_emittion(event_cls),))
         else:
             event = event_cls()
             self.color = Color.Blue
-            self.body = TableContent(table_head=('Field', 'Default Value'))
-            for k, v in event.params.iteritems():
-                self.body.append_table_row((k, v))
+            if event.no_field:
+                pass
+            else:
+                self.body = TableContent(table_head=('Field', 'Default Value'))
+                for k, v in event.params.iteritems():
+                    self.body.append_table_row((k, v))
 
 
     def __parse_handler_node(self, process_flow, handler_node):
@@ -193,17 +202,29 @@ class NodePanel(Panel):
                     self.body = TextContent(str(handler_runtime.exception))
             else:
                 self.color = Color.Grey
-                self.body = TableContent(table_head=('Events to be Emitted',))
-                for event_cls in handler.emittion_statement:
+                self.body = TableContent(table_head=('Emittion Statement',))
+                if handler.no_emittion_statement:
+                    pass
+                else:
+                    self.body = TableContent(table_head=('Field', 'Value',))
+
+                    emittion_statement_str = ', '.join(
+                        ['%s.%s' % (event_cls.__module__, event_cls.__name__) \
+                         for event_cls in handler.emittion_statement])
                     self.body.append_table_row(
-                        ('%s.%s' % (event_cls.__module__, event_cls.__name__),))
+                        ('emittion_statement', emittion_statement_str))
         else:
             self.color = Color.Green
-            self.body = TableContent(table_head=('Events to be Emitted',))
-            for event_cls in handler.emittion_statement:
-                self.body.append_table_row(
-                    ('%s.%s' % (event_cls.__module__, event_cls.__name__),))
+            if handler.no_emittion_statement:
+                pass
+            else:
+                self.body = TableContent(table_head=('Field', 'Value',))
 
+                emittion_statement_str = ', '.join(
+                    ['%s.%s' % (event_cls.__module__, event_cls.__name__) \
+                        for event_cls in handler.emittion_statement])
+                self.body.append_table_row(
+                    ('emittion_statement', emittion_statement_str))
 
 
 class SummaryPanel(Panel):

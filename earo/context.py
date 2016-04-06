@@ -45,6 +45,7 @@ class Context(object):
     """
 
     def __init__(self, mediator, source_event, processor):
+
         self.mediator = mediator
         self.source_event = source_event
         self.processor = processor

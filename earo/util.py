@@ -24,7 +24,6 @@ def datetime_delta_ms(d1, d2):
     Both `d1` and `d2 must be an instance of `datetime.datetime`.
     return the millisecond(s) between `d1` and `d2`.
     """
-
     if not isinstance (d1, datetime):
         raise TypeError('`d1` must be an instance of `datetime.datetime`.')
     if not isinstance (d2, datetime):

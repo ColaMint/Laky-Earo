@@ -58,6 +58,7 @@ class Node(object):
     """
 
     def __init__(self, inactive_item, child_nodes=None):
+
         self.inactive_item = inactive_item
         self.active_item = None
         self.child_nodes = [] if child_nodes is None else child_nodes
@@ -163,6 +164,7 @@ class Processor(object):
     """
 
     def __init__(self, tag_regex):
+
         self.tag_regex = tag_regex
         self._tag_pattern = re.compile(self.tag_regex)
         self._process_count = atomic.AtomicLong(0)
@@ -184,6 +186,8 @@ class Processor(object):
         """
         Process the :class:`earo.context.Context`, make a :class:`ProcessFlow` and
         set it at :class:`earo.context.Context`.`process_flow`.
+
+        :param context: a :class:`earo.context.Context`.
         """
 
         process_flow = ProcessFlow(context.mediator, type(context.source_event))
@@ -344,6 +348,7 @@ class ProcessFlow(object):
     """
 
     def __init__(self, mediator, source_event_cls):
+
         self._emittions = {}
         self._no_emittions = {}
         self._build_nodes(mediator, source_event_cls)
@@ -352,7 +357,6 @@ class ProcessFlow(object):
         """
         Build nodes and set self.`root`.
         """
-
         def build_node_recursively(inactive_item, node_type):
             if node_type == NodeType.Event:
                 event_cls = inactive_item
