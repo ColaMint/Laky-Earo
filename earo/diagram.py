@@ -32,6 +32,9 @@ static_path = os.path.join(template_path, 'static')
 
 
 class Color(Enum):
+    """
+    Enum type of colors used by javascript.
+    """
     Red = 1
     Blue = 2
     Green = 3
@@ -40,11 +43,28 @@ class Color(Enum):
 
 
 class ContentType(Enum):
+    """
+    Enum type of :class:`Content`
+    """
     Text = 1
     Table = 2
 
 
 class Content(object):
+    """
+    Help :class:`Diagram` to transfer :class:`earo.processor.ProcessFlow` to
+    json.
+    """
+
+    content_type = None
+    """
+    One of :class:`ContentType`.
+    """
+
+    __params__ = None
+    """
+    Store key/value in subclass.
+    """
 
     def __init__(self, content_type, **kwargs):
         self.content_type = content_type
@@ -53,9 +73,15 @@ class Content(object):
             self.__params__[k] = v
 
     def to_json(self):
+        """
+        Dumps to json string.
+        """
         return json.dumps(self.to_dict())
 
     def to_dict(self):
+        """
+        Dumps to json.
+        """
         content_dict = {
             'content_type': self.content_type,
         }
@@ -67,6 +93,9 @@ class Content(object):
 
 
 class TextContent(Content):
+    """
+    Used to make a text in html.
+    """
 
     def __init__(self, text=''):
         super(TextContent, self).__init__(
@@ -78,6 +107,9 @@ class TextContent(Content):
 
 
 class TableContent(Content):
+    """
+    Used to make a table in html.
+    """
 
     def __init__(self, table_head=None, table_rows=None):
         if table_head is None:
@@ -100,6 +132,10 @@ class TableContent(Content):
 
 
 class Panel(object):
+    """
+    Help :class:`Diagram` to transfer :class:`earo.processor.ProcessFlow` to
+    json.
+    """
 
     def __init__(self):
         self.color = None
@@ -131,20 +167,24 @@ class Panel(object):
 
 
 class NodePanel(Panel):
+    """
+    Help :class:`Diagram` to transfer :class:`earo.processor.ProcessFlow` to
+    json.
+    """
 
     def __init__(self, process_flow, node):
         super(NodePanel, self).__init__()
-        self.__parse_node(process_flow, node)
+        self._parse_node(process_flow, node)
 
-    def __parse_node(self, process_flow, node):
+    def _parse_node(self, process_flow, node):
         if node.type == NodeType.Event:
-            self.__parse_event_node(process_flow, node)
+            self._parse_event_node(process_flow, node)
         elif node.type == NodeType.Handler:
-            self.__parse_handler_node(process_flow, node)
+            self._parse_handler_node(process_flow, node)
         else:
             raise TypeError('Unknown NodeType: `%s`.' % (node.type,))
 
-    def __parse_event_node(self, process_flow, event_node):
+    def _parse_event_node(self, process_flow, event_node):
         event_cls = event_node.inactive_item
         self.title = TextContent('%s.%s' % (
             event_cls.__module__,
@@ -166,11 +206,13 @@ class NodePanel(Panel):
                 if event.no_field:
                     pass
                 else:
-                    self.body = TableContent(table_head=('Field', 'Default Value'))
+                    self.body = TableContent(
+                        table_head=('Field', 'Default Value'))
                     for k, v in event.params.iteritems():
                         self.body.append_table_row((k, v))
-                self.footer = TextContent('why no emittion: %s' %
-                                (process_flow.why_no_emittion(event_cls),))
+                self.footer = TextContent(
+                    'why no emittion: %s' %
+                    (process_flow.why_no_emittion(event_cls),))
         else:
             event = event_cls()
             self.color = Color.Blue
@@ -181,8 +223,7 @@ class NodePanel(Panel):
                 for k, v in event.params.iteritems():
                     self.body.append_table_row((k, v))
 
-
-    def __parse_handler_node(self, process_flow, handler_node):
+    def _parse_handler_node(self, process_flow, handler_node):
         handler = handler_node.inactive_item
         self.title = TextContent('%s.%s' % (
             handler.func.__module__,
@@ -196,7 +237,7 @@ class NodePanel(Panel):
                     self.body = TableContent(table_head=('Field', 'Value'))
                     self.body.append_table_row(
                         ('time_cost', '%s ms' %
-                        handler_runtime.time_cost))
+                         handler_runtime.time_cost))
                 else:
                     self.color = Color.Red
                     self.body = TextContent(str(handler_runtime.exception))
@@ -209,7 +250,7 @@ class NodePanel(Panel):
                     self.body = TableContent(table_head=('Field', 'Value',))
 
                     emittion_statement_str = ', '.join(
-                        ['%s.%s' % (event_cls.__module__, event_cls.__name__) \
+                        [event_cls.key()
                          for event_cls in handler.emittion_statement])
                     self.body.append_table_row(
                         ('emittion_statement', emittion_statement_str))
@@ -221,19 +262,23 @@ class NodePanel(Panel):
                 self.body = TableContent(table_head=('Field', 'Value',))
 
                 emittion_statement_str = ', '.join(
-                    ['%s.%s' % (event_cls.__module__, event_cls.__name__) \
-                        for event_cls in handler.emittion_statement])
+                    [event_cls.key() for event_cls in
+                     handler.emittion_statement])
                 self.body.append_table_row(
                     ('emittion_statement', emittion_statement_str))
 
 
 class SummaryPanel(Panel):
+    """
+    Help :class:`Diagram` to transfer :class:`earo.processor.ProcessFlow` to
+    json.
+    """
 
     def __init__(self, process_flow):
         super(SummaryPanel, self).__init__()
-        self.__parse_process_flow(process_flow)
+        self._parse_process_flow(process_flow)
 
-    def __parse_process_flow(self, process_flow):
+    def _parse_process_flow(self, process_flow):
         self.color = Color.Yellow
         if process_flow.active:
             self.title = TextContent('Processor Flow Summary')
@@ -249,8 +294,23 @@ class SummaryPanel(Panel):
 
 
 class Diagram(object):
+    """
+    Transfer :class:`earo.processor.ProcessFlow` to html
+    """
+
+    json = None
+    """
+    Used by javascript to build elements to show the
+    :class:`earo.processor.ProcessFlow` in html.
+    """
 
     def __init__(self, process_flow=None, json=None):
+        """
+        Initial from :class:`earo.processor.ProcessFlow` or `json`.
+
+        :param process_flow: :class:`earo.processor.ProcessFlow`.
+        :param json: json get from `self.to_json()`.
+        """
         self.process_flow = process_flow
         if process_flow:
             self._from_process_flow(process_flow)
@@ -272,10 +332,15 @@ class Diagram(object):
         root_node_panel = build_node_panel_recursively(
                 process_flow.root)
         summary_panel.append_next_panel(root_node_panel)
+        self.dict = summary_panel.to_dict()
         self.json = summary_panel.to_json()
 
     def to_html(self, dest_dir):
+        """
+        Transfer :class:`earo.processor.ProcessFlow` to html in `dest_dir`.
 
+        :param dest_dir: The directory to save the ouput html.
+        """
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir, 0o744)
 
@@ -295,4 +360,8 @@ class Diagram(object):
         shutil.copytree(static_path, dest_static_path)
 
     def to_json(self):
+        """
+        Dumps to json string, which can be saved and used to reinitial
+        :class:`Diagram` next time.
+        """
         return self.json

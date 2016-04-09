@@ -55,10 +55,16 @@ class App(object):
     `tag_regex` is `_default_processor_tag_regex`.
     """
 
+    _source_event_cls_to_latest_active_process_flow = None
+    """
+    Record latest active :class:`earo.processor.Processor` for every source event.
+    """
+
     def __init__(self, config):
 
         self.mediator = Mediator()
         self.config = config
+        self._source_event_cls_to_latest_active_process_flow = {}
         self._init_with_config()
 
     def _init_with_config(self):
@@ -99,9 +105,16 @@ class App(object):
 
         :param event: The event to emit.
         """
+        event_cls = type(event)
+
         matched_processor = self._match_processor(event)
+
         context = Context(self.mediator, event, matched_processor)
         context.process()
+
+        self._source_event_cls_to_latest_active_process_flow[
+            event_cls] = context.process_flow
+
         return context
 
     def _match_processor(self, event):
@@ -141,3 +154,12 @@ class App(object):
         process_flow = ProcessFlow(self.mediator, source_event_cls)
         diagram = Diagram(process_flow=process_flow)
         diagram.to_html(dest_dir)
+
+    def latest_active_process_flow(self, source_event_cls):
+        """
+        Return the latest active :class:`earo.processor.ProcessFlow` of `source_event_cls`.
+
+        :param source_event_cls: The class of the source event of the process flow
+        """
+        return self._source_event_cls_to_latest_active_process_flow.get(
+            source_event_cls, None)

@@ -66,14 +66,14 @@ class Node(object):
     @property
     def active(self):
         """
-        whether this node is active or not.
+        Whether this node is active or not.
         """
         return self.active_item is not None
 
     @property
     def type(self):
         """
-        one of :class:`NodeType`.
+        One of :class:`NodeType`.
         """
         raise NotImplemented
 
@@ -87,7 +87,7 @@ class EventNode(Node):
     @property
     def type(self):
         """
-        return :class:`NodeType`.Event
+        Return :class:`NodeType`.Event
         """
         return NodeType.Event
 
@@ -130,6 +130,11 @@ class Processor(object):
     and have raised exception.
     """
 
+    _event_process_list = None
+    """
+    A list of event classes that have been processed.
+    """
+
     _event_process_count = None
     """
     A `dict`.
@@ -169,6 +174,7 @@ class Processor(object):
         self._tag_pattern = re.compile(self.tag_regex)
         self._process_count = atomic.AtomicLong(0)
         self._exception_count = atomic.AtomicLong(0)
+        self._event_process_list = []
         self._event_process_count = {}
         self._event_exception_count = {}
         self._event_min_time_cost = {}
@@ -178,8 +184,9 @@ class Processor(object):
         """
         Determine whether the `event`'s tag match `tag_regex`.
         """
-        return self._tag_pattern.match(event.tag) is not None \
-            if event.tag is not None \
+        tag = event.tag()
+        return self._tag_pattern.match(tag) is not None \
+            if tag is not None \
             else False
 
     def process(self, context):
@@ -230,6 +237,8 @@ class Processor(object):
         self._process_count += 1
         if source_event_cls not in self._event_process_count:
             self._event_process_count[source_event_cls] = atomic.AtomicLong(0)
+        if source_event_cls not in self._event_process_list:
+            self._event_process_list.append(source_event_cls)
         self._event_process_count[source_event_cls] += 1
         if source_event_cls not in self._event_exception_count:
             self._event_exception_count[source_event_cls] = atomic.AtomicLong(0)
@@ -263,6 +272,12 @@ class Processor(object):
         and have raised exception.
         """
         return self._exception_count.value
+
+    def event_process_list(self):
+        """
+        Return a list of source event classes that have been processed.
+        """
+        return self._event_process_list
 
     def event_process_count(self, source_event_cls):
         """

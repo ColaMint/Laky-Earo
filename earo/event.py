@@ -73,8 +73,10 @@ class EventMetaClass(type):
         new_attrs['__fields__'] = fields
         new_attrs['__mappings__'] = mappings
         new_attrs['__params__'] = params
-        new_attrs['__tag__'] = attrs['__tag__'] if '__tag__' in attrs \
-                                                else name
+        new_attrs['__tag__'] = attrs['__tag__'] \
+            if '__tag__' in attrs else ''
+        new_attrs['__description__'] = attrs['__description__'] \
+            if '__description__' in attrs else ''
         return super(EventMetaClass, cls).__new__(cls, name, bases, new_attrs)
 
 
@@ -113,12 +115,26 @@ class Event(object):
         """
         return copy.deepcopy(self.__params__)
 
-    @property
-    def tag(self):
+    @classmethod
+    def tag(cls):
         """
         The tag of the event.
         """
-        return self.__tag__
+        return cls.__tag__
+
+    @classmethod
+    def description(cls):
+        """
+        The description of the event.
+        """
+        return cls.__description__
+
+    @classmethod
+    def key(cls):
+        """
+        A unique string for the event.
+        """
+        return '%s.%s' % (cls.__module__, cls.__name__)
 
     @property
     def no_field(self):

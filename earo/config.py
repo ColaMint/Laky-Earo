@@ -25,7 +25,10 @@ class Config(object):
 
     __config__ = {
         'app_name': 'earo',
-        'processors_tag_regex': ()
+        'source_event_cls': (),
+        'processors_tag_regex': (),
+        'monitor_host': '0.0.0.0',
+        'monitor_port': 9527
     }
     """
     The default configuration.
@@ -49,3 +52,7 @@ class Config(object):
             self.__config__[key] = value
         else:
             raise KeyError(key)
+
+    @property
+    def dict(self):
+        return self.__config__
