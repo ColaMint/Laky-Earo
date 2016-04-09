@@ -22,6 +22,7 @@ from handler import Handler
 from context import Context
 from processor import Processor, ProcessFlow
 from diagram import Diagram
+from dashboard import Dashboard
 
 
 class App(object):
@@ -58,6 +59,11 @@ class App(object):
     _source_event_cls_to_latest_active_process_flow = None
     """
     Record latest active :class:`earo.processor.Processor` for every source event.
+    """
+
+    dashboard = None
+    """
+    :class:`earo.dashboard.Dashboard`.
     """
 
     def __init__(self, config):
@@ -163,3 +169,12 @@ class App(object):
         """
         return self._source_event_cls_to_latest_active_process_flow.get(
             source_event_cls, None)
+
+    def run_dashboard(self, daemon=True):
+        """
+        Run dashboard.
+
+        :param daemon: If `True`, run dashboard in daemon thread.
+        """
+        self.dashboard = Dashboard(self)
+        self.dashboard.run(daemon=daemon)
