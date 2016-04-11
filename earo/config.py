@@ -17,6 +17,7 @@
 #   limitations under the License.                                            #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+import copy
 
 class Config(object):
     """
@@ -26,7 +27,7 @@ class Config(object):
     __config__ = {
         'app_name': 'earo',
         'source_event_cls': (),
-        'processors_tag_regex': (),
+        'processors_tag_regex': [],
         'monitor_host': '0.0.0.0',
         'monitor_port': 9527
     }
@@ -55,4 +56,4 @@ class Config(object):
 
     @property
     def dict(self):
-        return self.__config__
+        return copy.deepcopy(self.__config__)

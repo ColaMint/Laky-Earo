@@ -26,29 +26,6 @@ const ContentType = {
     'Table' : 2,
 }
 
-String.prototype.format = function(args) {
-    var result = this;
-    if (arguments.length > 0) {    
-        if (arguments.length == 1 && typeof (args) == "object") {
-            for (var key in args) {
-                if(args[key]!=undefined){
-                    var reg = new RegExp("({" + key + "})", "g");
-                    result = result.replace(reg, args[key]);
-                }
-            }
-        }
-        else {
-            for (var i = 0; i < arguments.length; i++) {
-                if (arguments[i] != undefined) {
-                    var reg = new RegExp("({[" + i + "]})", "g");
-                    result = result.replace(reg, arguments[i]);
-                }
-            }
-        }
-    }
-    return result;
-}
-
 function color_to_class(color) {
     color_class = null;
     switch(color) {
@@ -175,7 +152,6 @@ function build_panels(root_panel) {
 
             var end_point_x = x;
             var end_point_y = y;
-            console.log(dom_heading.height());
             var end_point = make_point(end_point_x, end_point_y);
             $("body").append(end_point);
         }
@@ -188,4 +164,3 @@ function build_panels(root_panel) {
     }
     build_panel_recursively(root_panel, 0, 0)
 }
-

@@ -17,15 +17,13 @@
 #   limitations under the License.                                            #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from earo.processor import ProcessFlow
 from earo.diagram import Diagram
 import threading
 import os
 
-template_folder = os.path.join(os.path.dirname(__file__), 'template')
-
-static_folder = os.path.join(os.path.dirname(__file__), 'static')
+template_folder = static_folder = os.path.join(os.path.dirname(__file__), 'static')
 
 
 class Dashboard(object):
@@ -73,15 +71,15 @@ class Dashboard(object):
 
         @self.flask_app.route('/')
         def index():
-            return 'hello'
+            return render_template('index.html')
 
         @self.flask_app.route('/configuration')
         def configuration():
             config = self.earo_app.config.dict
             config['source_event_cls'] = [
                 source_event_cls.key()
-                for source_event_cls in config['source_event_cls']]
-            return json_output(0, self.earo_app.config.dict)
+                for source_event_cls in self.earo_app.config.source_event_cls]
+            return json_output(0, config)
 
         @self.flask_app.route('/source_event_cls_list')
         def source_event_cls_list():
@@ -150,9 +148,9 @@ class Dashboard(object):
         """
 
         def run_flask():
-            self.flask.run(
-                host=self.app.config.monitor_host,
-                port=self.app.config.monitor_port)
+            self.flask_app.run(
+                host=self.earo_app.config.monitor_host,
+                port=self.earo_app.config.monitor_port)
 
         if daemon:
             th = threading.Thread(target=run_flask)

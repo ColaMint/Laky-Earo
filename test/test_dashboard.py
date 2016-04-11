@@ -22,7 +22,7 @@ class TestDashboard(unittest.TestCase):
 
         self.config = Config(
             source_event_cls=(AEvent,),
-            processors_tag_regex=('a\..+',)
+            processors_tag_regex=['a\..+',]
         )
         self.app = App(self.config)
 
@@ -33,13 +33,14 @@ class TestDashboard(unittest.TestCase):
         self.dashboard = Dashboard(self.app)
         self.dashboard.flask_app.debug = True
         self.client = self.dashboard.flask_app.test_client()
+        self.dashboard.run(daemon=False)
 
     def tearDown(self):
         pass
 
     def test_index(self):
         rv = self.client.get('/')
-        self.assertTrue('hello' in rv.data)
+        self.assertTrue('Earo Dashboard' in rv.data)
 
     def test_configuration(self):
         rv = self.client.get('/configuration')

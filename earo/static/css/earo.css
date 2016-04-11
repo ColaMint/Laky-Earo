@@ -32,3 +32,44 @@ h3 {
     height:10px;
     background-color: #EE8262;
 }
+
+.earo_header {
+    padding-top: 30px;
+    padding-bottom: 30px; 
+    margin-bottom: 30px;
+    background-color: #3D5471;
+}
+
+.container {
+    position: relative;
+    max-width: 900px;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.earo_header h1{
+    color: #fff;
+}
+
+.container table{
+    width: auto;
+    max-width: 700px;
+}
+
+.navbar-text{
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+nav button{
+    float: right;
+    margin-left: 5px;
+}
+
+table button{
+    min-width: 80px;  
+    margin-left:3px;
+    margin-right:3px;
+}

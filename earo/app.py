@@ -80,13 +80,12 @@ class App(object):
         """
         self.app_name = self.config.app_name
 
+        if self._default_processor_tag_regex not in self.config.processors_tag_regex:
+            self.config.processors_tag_regex.append(self._default_processor_tag_regex)
         self.processors = []
         for processor_tag_regex in self.config.processors_tag_regex:
             self.processors.append(
                 Processor(processor_tag_regex))
-        if self._default_processor_tag_regex not in self.processors:
-            self.processors.append(
-                Processor(self._default_processor_tag_regex))
 
     def handler(self, event_cls, emittion_statement=[]):
         """

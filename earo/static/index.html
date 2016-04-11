@@ -1,0 +1,168 @@
+<!doctype html>
+<!--
+Copyright 2016 Everley
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="./static/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="./static/css/earo.css">
+    </head>
+    <body>
+        <div id="earo_header" class="earo_header">
+            <div class="container">
+                <h1>Earo Dashboard</h1>
+            </div>
+        </div>
+        <div class="container">
+            <div id="earo_config_container">
+                <nav class="navbar navbar-default">
+                    <div class="container-fluid">
+                        <h3 class="navbar-text">Configuration</h3>
+                        <button id="btn_hide_or_display_configuration" type="button" class="btn btn-default navbar-btn" aria-label="Left Align" onclick="hide_or_display('configuration_table');">
+                              <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+                        </button>
+                        <button id="btn_refresh_configuration" type="button" class="btn btn-default navbar-btn" aria-label="Left Align" onclick="load_configuration();">
+                              <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </nav>
+                <table id="configuration_table" class="table table-hover table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead> 
+                    <tbody>
+                    </tbody> 
+                </table>
+            </div>
+            <div id="earo_processor_container">
+                <nav class="navbar navbar-default">
+                    <div class="container-fluid">
+                        <h3 class="navbar-text">Processor</h3>
+                        <button type="button" class="btn btn-default navbar-btn" aria-label="Left Align" onclick="hide_or_display('processor_list');">
+                              <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+                        </button>
+                        <button type="button" class="btn btn-default navbar-btn" aria-label="Left Align" onclick="load_processor_list();">
+                              <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </nav>
+                <div id="processor_list"></div>
+            </div>
+            <div id="source_event_container">
+                <nav class="navbar navbar-default">
+                    <div class="container-fluid">
+                        <h3 class="navbar-text">Source Event</h3>
+                        <button type="button" class="btn btn-default navbar-btn" aria-label="Left Align" onclick="hide_or_display('source_event_cls_table');">
+                              <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+                        </button>
+                        <button type="button" class="btn btn-default navbar-btn" aria-label="Left Align" onclick="load_source_event_cls_list();">
+                              <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </nav>
+                <table id="source_event_cls_table" class="table table-hover table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Source Event</th>
+                            <th>Tag</th>
+                            <th>Description</th>
+                            <th>Operation</th>
+                        </tr>
+                    </thead> 
+                    <tbody></tbody> 
+                </table>
+            </div>
+        </div>
+    </body>
+    <script src="./static/js/jquery-2.2.0.min.js"></script>
+    <script src="./static/js/bootstrap.min.js"></script>
+    <script src="./static/js/earo_common.js"></script>
+    <script src="./static/js/earo_api.js"></script>
+    <script>
+        window.onload = function() {
+            load_configuration();
+            load_processor_list();
+            load_source_event_cls_list();
+        }
+
+        function load_configuration() {
+            earo_configuration(function(data) {
+                var tbody = $("#configuration_table tbody"); 
+                tbody.empty();
+                for (var item in data) {
+                    var tr = $("<tr><td>{0}</td><td>{1}</td></tr>".format(item, data[item]));  
+                    tbody.append(tr)
+                }  
+            }); 
+        }
+
+        function load_processor_list() {
+            earo_processor_list(function(data) {
+                var processor_list = $("#processor_list"); 
+                processor_list.empty();
+                var id = 1;
+                for (var i in data) {
+                    processor = data[i];
+
+                    var h3 = $("<h3>Processor(#{0})</h3>".format(id++));
+                    processor_list.append(h3);
+
+                    var processor_table = $("<table class='table table-hover table-bordered'><thead><tr><th>Item</th><th>Value</th></tr></thead><tbody><tr><td>{0}</td><td>{1}</td></tr><tr><td>{2}</td><td>{3}</td></tr><tr><td>{4}</td><td>{5}</td></tr></tbody></table>".format("tag_regex", processor.tag_regex, "process_count", processor.process_count, "exception_count", processor.exception_count)); 
+                    processor_list.append(processor_table);
+                    
+                    var event_statistics_table = $("<table class='table table-hover table-bordered'><thead><tr><th>Source Event</th><th>Process Count</th><th>Exception Count</th><th>Min Time Cost</th><th>Max Time Cost</th></tr></thead><tbody></tbody></table>");
+                    for (source_event_cls_key in processor.event_statistics) {
+                        var event_statistics = processor.event_statistics[source_event_cls_key];
+                        var tbody = event_statistics_table.find("tbody").first();
+                        var tr = $("<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td></tr>".format(source_event_cls_key, event_statistics.process_count, event_statistics.exception_count, event_statistics.min_time_cost, event_statistics.max_time_cost));
+                        tbody.append(tr);
+                    }
+                    processor_list.append(event_statistics_table);
+                }
+            }); 
+        }
+
+        function load_source_event_cls_list() {
+            earo_source_event_cls_list(function(data){
+                var tbody = $("#source_event_cls_table tbody"); 
+                tbody.empty();
+                for (var i in data) {
+                    var tr = $("<tr><td>{0}</td><td>{1}</td><td>{2}</td></tr>".format(data[i].source_event_cls, data[i].source_event_tag, data[i].source_event_description));  
+                    var td = $("<td></td>")
+                    var preview_button = $("<button class='btn btn-info' type='submit'>Preview</button>");
+                    var latest_button = $("<button class='btn btn-success' type='submit'>Latest</button>");
+                    td.append(preview_button);
+                    td.append(latest_button);
+                    tr.append(td);
+                    tbody.append(tr)
+                }  
+            });
+        }
+
+        function hide_or_display(id) {
+            console.log(id)
+            var e = $("#{0}".format(id));
+            if (e.css("display") == "none") {
+                e.css("display", "");  
+            } else {
+                e.css("display", "none");  
+            }
+        }
+    </script>
+</html
