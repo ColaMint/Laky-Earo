@@ -16,9 +16,11 @@ limitations under the License.
 -->
 <html>
     <head>
+        <title>Earo Dashboard</title>
         <meta charset="utf-8">
-        <link rel="stylesheet" type="text/css" href="./static/css/bootstrap.min.css">
-        <link rel="stylesheet" type="text/css" href="./static/css/earo.css">
+        <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="/static/css/earo.css">
+        <link rel="stylesheet" type="text/css" href="/static/css/toastr.min.css">
     </head>
     <body>
         <div id="earo_header" class="earo_header">
@@ -90,10 +92,11 @@ limitations under the License.
             </div>
         </div>
     </body>
-    <script src="./static/js/jquery-2.2.0.min.js"></script>
-    <script src="./static/js/bootstrap.min.js"></script>
-    <script src="./static/js/earo_common.js"></script>
-    <script src="./static/js/earo_api.js"></script>
+    <script src="/static/js/jquery-2.2.0.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/toastr.min.js"></script>
+    <script src="/static/js/earo_common.js"></script>
+    <script src="/static/js/earo_api.js"></script>
     <script>
         window.onload = function() {
             load_configuration();
@@ -145,8 +148,8 @@ limitations under the License.
                 for (var i in data) {
                     var tr = $("<tr><td>{0}</td><td>{1}</td><td>{2}</td></tr>".format(data[i].source_event_cls, data[i].source_event_tag, data[i].source_event_description));  
                     var td = $("<td></td>")
-                    var preview_button = $("<button class='btn btn-info' type='submit'>Preview</button>");
-                    var latest_button = $("<button class='btn btn-success' type='submit'>Latest</button>");
+                    var preview_button = $("<a href='/preview_process_flow/{0}' target='_blank'><button class='btn btn-info' type='submit'>Preview</button></a>".format(data[i].source_event_cls));
+                    var latest_button = $("<a href='latest_process_flow/{0}' target='_blank'><button class='btn btn-success' type='submit'>Latest</button></a>".format(data[i].source_event_cls));
                     td.append(preview_button);
                     td.append(latest_button);
                     tr.append(td);

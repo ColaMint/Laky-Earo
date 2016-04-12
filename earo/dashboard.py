@@ -23,7 +23,8 @@ from earo.diagram import Diagram
 import threading
 import os
 
-template_folder = static_folder = os.path.join(os.path.dirname(__file__), 'static')
+template_folder = static_folder = os.path.join(
+    os.path.dirname(__file__), 'static')
 
 
 class Dashboard(object):
@@ -57,9 +58,9 @@ class Dashboard(object):
                                template_folder=template_folder)
         self._source_event_cls_map = {}
         for source_event_cls in self.earo_app.config.source_event_cls:
-            self._source_event_cls_map[source_event_cls.key()] = source_event_cls
+            self._source_event_cls_map[
+                source_event_cls.key()] = source_event_cls
         self._init_routes()
-
 
     def _init_routes(self):
         """
@@ -71,7 +72,7 @@ class Dashboard(object):
 
         @self.flask_app.route('/')
         def index():
-            return render_template('index.html')
+            return render_template('dashboard.html')
 
         @self.flask_app.route('/configuration')
         def configuration():
@@ -119,7 +120,10 @@ class Dashboard(object):
                 process_flow = ProcessFlow(
                     self.earo_app.mediator, source_event_cls)
                 diagram = Diagram(process_flow)
-                return json_output(0, diagram.dict)
+                return render_template(
+                    'process_flow.html',
+                    title='Preview Process Flow',
+                    diagram=diagram.json)
             else:
                 return json_output(-1, 'event not exists')
 
@@ -132,10 +136,13 @@ class Dashboard(object):
                     source_event_cls)
                 if process_flow:
                     diagram = Diagram(process_flow)
-                    return json_output(0, diagram.dict)
+                    return render_template(
+                        'process_flow.html',
+                        title='Latest Process Flow',
+                        diagram=diagram.json)
                 else:
-                    return json_output(-1,
-                                       'latest active process flow not found')
+                    return json_output(
+                        -1, 'latest active process flow not found')
 
             else:
                 return json_output(-1, 'event not exists')

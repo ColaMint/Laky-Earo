@@ -18,8 +18,8 @@ class AEvent(Event):
 
 class TestDashboard(unittest.TestCase):
 
-    def setUp(self):
-
+    def __init__(self, *args, **kwargs):
+        super(TestDashboard, self).__init__(*args, **kwargs)
         self.config = Config(
             source_event_cls=(AEvent,),
             processors_tag_regex=['a\..+',]
@@ -31,9 +31,12 @@ class TestDashboard(unittest.TestCase):
             pass
 
         self.dashboard = Dashboard(self.app)
-        self.dashboard.flask_app.debug = True
         self.client = self.dashboard.flask_app.test_client()
-        self.dashboard.run(daemon=False)
+        # self.dashboard.flask_app.debug = True
+        # self.dashboard.run(daemon=False)
+
+    def setUp(self):
+        pass
 
     def tearDown(self):
         pass
@@ -90,12 +93,7 @@ class TestDashboard(unittest.TestCase):
 
     def test_preview_process_flow(self):
         rv = self.client.get('/preview_process_flow/test_dashboard.AEvent')
-        result = json.loads(rv.data)
-        self.assertEqual(result['c'], 0)
-        self.assertTrue('title' in result['d'])
-        self.assertTrue('color' in result['d'])
-        self.assertTrue('body' in result['d'])
-        self.assertTrue('footer' in result['d'])
+        self.assertTrue('Preview Process Flow' in rv.data)
 
     def test_latest_process_flow(self):
         self.app._source_event_cls_to_latest_active_process_flow.clear()
@@ -106,12 +104,7 @@ class TestDashboard(unittest.TestCase):
         self.app.emit(AEvent())
 
         rv = self.client.get('/latest_process_flow/test_dashboard.AEvent')
-        result = json.loads(rv.data)
-        self.assertEqual(result['c'], 0)
-        self.assertTrue('title' in result['d'])
-        self.assertTrue('color' in result['d'])
-        self.assertTrue('body' in result['d'])
-        self.assertTrue('footer' in result['d'])
+        self.assertTrue('Latest Process Flow' in rv.data)
 
 
 if __name__ == '__main__':

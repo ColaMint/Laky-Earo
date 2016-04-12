@@ -18,17 +18,9 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 import os
-import shutil
 import json
-from jinja2 import Environment, FileSystemLoader
 from earo.processor import NodeType
 from enum import Enum
-
-template_path = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    'template')
-
-static_path = os.path.join(template_path, 'static')
 
 
 class Color(Enum):
@@ -332,36 +324,4 @@ class Diagram(object):
         root_node_panel = build_node_panel_recursively(
                 process_flow.root)
         summary_panel.append_next_panel(root_node_panel)
-        self.dict = summary_panel.to_dict()
         self.json = summary_panel.to_json()
-
-    def to_html(self, dest_dir):
-        """
-        Transfer :class:`earo.processor.ProcessFlow` to html in `dest_dir`.
-
-        :param dest_dir: The directory to save the ouput html.
-        """
-        if not os.path.exists(dest_dir):
-            os.makedirs(dest_dir, 0o744)
-
-        env = Environment(loader=FileSystemLoader(template_path))
-        template = env.get_template('process_flow.html')
-        result = template.render(root_panel=self.json)
-
-        # create process_flow.html
-        dest_filepath = os.path.join(dest_dir, 'process_flow.html')
-        with open(dest_filepath, 'w') as f:
-            f.write(result)
-
-        # copy statc resource
-        dest_static_path = os.path.join(dest_dir, 'static')
-        if os.path.exists(dest_static_path):
-            shutil.rmtree(dest_static_path)
-        shutil.copytree(static_path, dest_static_path)
-
-    def to_json(self):
-        """
-        Dumps to json string, which can be saved and used to reinitial
-        :class:`Diagram` next time.
-        """
-        return self.json

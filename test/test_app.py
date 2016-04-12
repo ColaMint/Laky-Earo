@@ -32,7 +32,7 @@ class TestApp(unittest.TestCase):
 
     def test_multi_processor(self):
 
-        config = Config(processors_tag_regex=('.+\.event_a','.+\.event_b'))
+        config = Config(processors_tag_regex=['.+\.event_a','.+\.event_b'])
         app = App(config)
 
         class EventA(Event):

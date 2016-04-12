@@ -26,13 +26,13 @@ function earo_ajax(earo_options) {
                 'd': result.d
             });
             if (result.c != 0) {
-                alert("An error occured: c: {0}, d: {1}".format(result.c, result.d) ); 
+                toastr.error('{0}({1})'.format(result.d, result.c), 'An error occured');
             } else {
                 earo_options.callback(result.d);
             }
         },
         error: typeof(earo_options.error) != undefined ? earo_options.error : function(xhr) {
-            alert("An error occured: " + xhr.status + " " + xhr.statusText); 
+            toastr.error('{0}({1})'.format(xhr.statusText, xhr.status), 'An error occured');
         },
     } 
     $.ajax(options);

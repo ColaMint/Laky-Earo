@@ -91,7 +91,7 @@ function make_point(left, top) {
     return point;
 }
 
-function build_panels(root_panel) {
+function build_diagram(root_panel) {
     var body_padding_left = 50;
     var col_offset = 180; 
     var row_offset = 40;

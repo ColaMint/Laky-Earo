@@ -74,7 +74,7 @@ class TestDiagram(unittest.TestCase):
         process_flow = context.process_flow
 
         diagram = Diagram(process_flow=process_flow)
-        diagram.to_html('/tmp/earo/active')
+        self.assertIsNotNone(diagram.json)
 
     def test_inactive_process_flow(self):
 
@@ -120,7 +120,7 @@ class TestDiagram(unittest.TestCase):
 
         process_flow = ProcessFlow(mediator, EventA)
         diagram = Diagram(process_flow=process_flow)
-        diagram.to_html('/tmp/earo/inactive')
+        self.assertIsNotNone(diagram.json)
 
     def test_json(self):
 
@@ -166,9 +166,9 @@ class TestDiagram(unittest.TestCase):
 
         process_flow = ProcessFlow(mediator, EventA)
         diagram_from_process_flow = Diagram(process_flow=process_flow)
-        json = diagram_from_process_flow.to_json()
+        json = diagram_from_process_flow.json
         diagram_from_json = Diagram(json=json)
-        diagram_from_json.to_html('/tmp/earo/json')
+        self.assertIsNotNone(diagram_from_json.json)
 
 
 if __name__ == '__main__':
