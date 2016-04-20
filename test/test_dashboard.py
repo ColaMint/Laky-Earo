@@ -67,7 +67,7 @@ class TestDashboard(unittest.TestCase):
         result = json.loads(rv.data)
         self.assertEqual(result['c'], 0)
         self.assertSequenceEqual(result['d'][0]['tag_regex'], 'a\..+')
-        self.assertSequenceEqual(result['d'][1]['tag_regex'], '.+')
+        self.assertSequenceEqual(result['d'][1]['tag_regex'], '.*')
         self.assertTrue('process_count' in result['d'][0])
         self.assertTrue('exception_count' in result['d'][0])
         self.assertTrue('event_statistics' in result['d'][0])

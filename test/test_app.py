@@ -56,11 +56,11 @@ class TestApp(unittest.TestCase):
 
         self.assertEqual(app.processors[0].tag_regex, '.+\.event_a')
         self.assertEqual(app.processors[1].tag_regex, '.+\.event_b')
-        self.assertEqual(app.processors[2].tag_regex, '.+')
+        self.assertEqual(app.processors[2].tag_regex, '.*')
 
         processor_event_a = app.get_processor_by_tag_regex('.+\.event_a')
         processor_event_b = app.get_processor_by_tag_regex('.+\.event_b')
-        processor_default = app.get_processor_by_tag_regex('.+')
+        processor_default = app.get_processor_by_tag_regex('.*')
 
         self.assertEqual(processor_event_a.process_count, 1)
         self.assertEqual(processor_event_b.process_count, 1)

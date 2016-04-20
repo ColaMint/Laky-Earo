@@ -50,7 +50,7 @@ class App(object):
     A list of :class:`earo.processor.Processor`.
     """
 
-    _default_processor_tag_regex = '.+'
+    _default_processor_tag_regex = '.*'
     """
     `self.processors` must contains a :class:`earo.processor.Processor` whose
     `tag_regex` is `_default_processor_tag_regex`.
