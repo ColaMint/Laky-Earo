@@ -109,7 +109,18 @@ limitations under the License.
                 var tbody = $("#configuration_table tbody"); 
                 tbody.empty();
                 for (var item in data) {
-                    var tr = $("<tr><td>{0}</td><td>{1}</td></tr>".format(item, data[item]));  
+                    var value;
+                    if (data[item] instanceof Array) {
+                        var ul = $("<ul></ul>"); 
+                        for (sub_item in data[item]) {
+                            var li = $("<li>{0}</li>".format(data[item][sub_item]));
+                            ul.append(li);
+                        }
+                        value = ul.html();
+                    } else {
+                        value = data[item];
+                    }
+                    var tr = $("<tr><td>{0}</td><td>{1}</td></tr>".format(item, value));  
                     tbody.append(tr)
                 }  
             }); 

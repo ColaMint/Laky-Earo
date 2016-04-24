@@ -81,7 +81,7 @@ class App(object):
             self.processors.append(
                 Processor(processor_tag_regex))
 
-    def handler(self, event_cls, emittion_statement=[]):
+    def handler(self, event_cls, derivative_events=[]):
         """
         An decorator to register the function as an event handlers.
         The function's param list must be `(context, event)`.
@@ -91,7 +91,7 @@ class App(object):
         by the handler.
         """
         def decorator(func):
-            handler = Handler(event_cls, func, emittion_statement)
+            handler = Handler(event_cls, func, derivative_events)
             self.mediator.register_event_handler(handler)
             return func
         return decorator

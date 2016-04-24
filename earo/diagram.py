@@ -202,9 +202,10 @@ class NodePanel(Panel):
                         table_head=('Field', 'Default Value'))
                     for k, v in event.params.iteritems():
                         self.body.append_table_row((k, v))
-                self.footer = TextContent(
-                    'why no emittion: %s' %
-                    (process_flow.why_no_emittion(event_cls),))
+                why_no_emittion = process_flow.why_no_emittion(event_cls)
+                if why_no_emittion is None:
+                    why_no_emittion = ''
+                self.footer = TextContent(why_no_emittion)
         else:
             event = event_cls()
             self.color = Color.Blue
@@ -235,7 +236,6 @@ class NodePanel(Panel):
                     self.body = TextContent(str(handler_runtime.exception))
             else:
                 self.color = Color.Grey
-                self.body = TableContent(table_head=('Emittion Statement',))
                 if handler.no_derivative_events:
                     pass
                 else:
