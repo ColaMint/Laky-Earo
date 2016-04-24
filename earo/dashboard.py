@@ -156,8 +156,8 @@ class Dashboard(object):
 
         def run_flask():
             self.flask_app.run(
-                host=self.earo_app.config.monitor_host,
-                port=self.earo_app.config.monitor_port)
+                host=self.earo_app.config.dashboard_host,
+                port=self.earo_app.config.dashboard_port)
 
         if daemon:
             th = threading.Thread(target=run_flask)

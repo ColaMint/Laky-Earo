@@ -101,11 +101,11 @@ class TestHandler(unittest.TestCase):
             pass
 
         def foo(context, event):
-            return NoEmittion(BEvent, 'test msg')
+            return NoEmittion(BEvent, 'test reason')
 
         handler = Handler(AEvent, foo, BEvent)
         handler_runtime = handler.handle(None, AEvent())
-        self.assertEqual(handler_runtime.why_no_emittion(BEvent), 'test msg')
+        self.assertEqual(handler_runtime.why_no_emittion(BEvent), 'test reason')
 
 if __name__ == '__main__':
     unittest.main()

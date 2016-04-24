@@ -50,12 +50,6 @@ class App(object):
     A list of :class:`earo.processor.Processor`.
     """
 
-    _default_processor_tag_regex = '.*'
-    """
-    `self.processors` must contains a :class:`earo.processor.Processor` whose
-    `tag_regex` is `_default_processor_tag_regex`.
-    """
-
     _source_event_cls_to_latest_active_process_flow = None
     """
     Record latest active :class:`earo.processor.Processor` for every source event.
@@ -80,8 +74,8 @@ class App(object):
         """
         self.app_name = self.config.app_name
 
-        if self._default_processor_tag_regex not in self.config.processors_tag_regex:
-            self.config.processors_tag_regex.append(self._default_processor_tag_regex)
+        if '.*' not in self.config.processors_tag_regex:
+            self.config.processors_tag_regex.append('.*')
         self.processors = []
         for processor_tag_regex in self.config.processors_tag_regex:
             self.processors.append(
@@ -146,19 +140,6 @@ class App(object):
             if processor.tag_regex == processor_tag_regex:
                 return processor
         return None
-
-    def build_process_flow_preview_html(self, source_event_cls, dest_dir):
-        """
-        Build the html, which allows you to preview the process flow of the
-        specific event, to the dest directory.
-
-        :param source_event_cls: The class of the source event of the process flow
-        you would like to preview.
-        :param dest_dir: The directory to save the html and some other static files.
-        """
-        process_flow = ProcessFlow(self.mediator, source_event_cls)
-        diagram = Diagram(process_flow=process_flow)
-        diagram.to_html(dest_dir)
 
     def latest_active_process_flow(self, source_event_cls):
         """

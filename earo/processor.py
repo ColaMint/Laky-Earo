@@ -384,7 +384,7 @@ class ProcessFlow(object):
             elif node_type == NodeType.Handler:
                 handler = inactive_item
                 child_nodes = []
-                for event_cls in handler.emittion_statement:
+                for event_cls in handler.derivative_events:
                     event_node = build_node_recursively(
                         event_cls, NodeType.Event)
                     child_nodes.append(event_node)

@@ -236,28 +236,28 @@ class NodePanel(Panel):
             else:
                 self.color = Color.Grey
                 self.body = TableContent(table_head=('Emittion Statement',))
-                if handler.no_emittion_statement:
+                if handler.no_derivative_events:
                     pass
                 else:
                     self.body = TableContent(table_head=('Field', 'Value',))
 
-                    emittion_statement_str = ', '.join(
+                    derivative_events_str = ', '.join(
                         [event_cls.key()
-                         for event_cls in handler.emittion_statement])
+                         for event_cls in handler.derivative_events])
                     self.body.append_table_row(
-                        ('emittion_statement', emittion_statement_str))
+                        ('derivative_events', derivative_events_str))
         else:
             self.color = Color.Green
-            if handler.no_emittion_statement:
+            if handler.no_derivative_events:
                 pass
             else:
                 self.body = TableContent(table_head=('Field', 'Value',))
 
-                emittion_statement_str = ', '.join(
+                derivative_events_str = ', '.join(
                     [event_cls.key() for event_cls in
-                     handler.emittion_statement])
+                     handler.derivative_events])
                 self.body.append_table_row(
-                    ('emittion_statement', emittion_statement_str))
+                    ('derivative_events', derivative_events_str))
 
 
 class SummaryPanel(Panel):

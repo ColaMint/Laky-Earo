@@ -69,19 +69,29 @@ class TestEvent(unittest.TestCase):
                 str_field = Field(dict, 100)
             BEvent()
 
-        def test_tag(self):
+    def test_tag(self):
 
-            class EventA(Event):
-                pass
+        class EventA(Event):
+            pass
 
-            event_a = EventA()
-            self.assertEqual(event_a.tag, 'EventA')
+        self.assertEqual(EventA.tag(), '')
 
-            class EventB(Event):
-                __tag__ = 'test_tag'
+        class EventB(Event):
+            __tag__ = 'test_tag'
 
-            event_b = EventB()
-            self.assertEqual(event_b.tag, 'test_tag')
+        self.assertEqual(EventB.tag(), 'test_tag')
+
+    def test_description(self):
+
+        class EventA(Event):
+            pass
+
+        self.assertEqual(EventA.description(), '')
+
+        class EventB(Event):
+            __description__ = 'test_description'
+
+        self.assertEqual(EventB.description(), 'test_description')
 
 if __name__ == '__main__':
     unittest.main()

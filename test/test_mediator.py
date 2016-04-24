@@ -41,5 +41,10 @@ class TestMediator(unittest.TestCase):
                 handler_1, handler_2])
         self.assertSequenceEqual(mediator.find_handlers(EventB), [])
 
+        mediator.unregister_event_handler(handler_1)
+        self.assertSequenceEqual(
+            mediator.find_handlers(EventA), [handler_2])
+
+
 if __name__ == '__main__':
     unittest.main()

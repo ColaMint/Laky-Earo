@@ -33,15 +33,15 @@ class NoEmittion(object):
     The class of the event not emitted.
     """
 
-    msg = None
+    reason = None
     """
     The reason why the event is not emitted.
     """
 
-    def __init__(self, event_cls, msg):
+    def __init__(self, event_cls, reason):
 
         self.event_cls = event_cls
-        self.msg = msg
+        self.reason = reason
 
 
 class Emittion(object):
@@ -84,6 +84,11 @@ class HandlerRuntime(object):
     """
     :class:`datetime.datetime`.
     The ending time of the handler's execution.
+    """
+
+    _time_cost = -1
+    """
+    The time cost(in milliseconds) between self.`begin_time` and self.`end_time`.
     """
 
     exception = None
@@ -155,7 +160,7 @@ class HandlerRuntime(object):
 
         :param emittion: :class:`NoEmittion`.
         """
-        self.no_emittions[no_emittion.event_cls] = no_emittion.msg
+        self.no_emittions[no_emittion.event_cls] = no_emittion.reason
 
     def why_no_emittion(self, event_cls):
         """
@@ -171,11 +176,11 @@ class HandlerRuntime(object):
         """
         The time cost(in milliseconds) of :class:`Handler`.func.
         """
-        if self.begin_time is not None and self.end_time is not None:
-            return datetime_delta_ms(self.end_time, self.begin_time)
-        else:
-            return -1
-
+        if self._time_cost < 0 \
+                and self.begin_time is not None \
+                and self.end_time is not None:
+            self._time_cost = datetime_delta_ms(self.end_time, self.begin_time)
+        return self._time_cost
 
 class Handler(object):
     """
@@ -192,19 +197,19 @@ class Handler(object):
     The handler function of this handler.
     """
 
-    emittion_statement = None
+    derivative_events = None
     """
     A `list` of classes of :class:`earo.event.Event`'s subclass that `self.func`
-    may emit. If an event is emitted but not in `self.emittion_statement`, `earo`
-    will raise an exception. `earo` use `self.emittion_statement` to build
+    may emit. If an event is emitted but not in `self.derivative_events`, `earo`
+    will raise an exception. `earo` use `self.derivative_events` to build
     :class:`earo.processor.ProcessFlow`.
     """
 
-    def __init__(self, event_cls, func, emittion_statement=[]):
+    def __init__(self, event_cls, func, derivative_events=[]):
 
         self.event_cls = event_cls
         self.func = func
-        self.emittion_statement = emittion_statement
+        self.derivative_events = derivative_events
         self._validate_func(func)
 
     def _validate_func(self, handle_func):
@@ -218,7 +223,7 @@ class Handler(object):
 
     def handle(self, context, event):
         """
-        Hanlde `event` in `context`.
+        Hanlde `event` within `context`.
 
         :param context: :class:`earo.context.Context`.
         :param event: an instance of :class:`earo.event.Event`'s subclass.
@@ -248,17 +253,17 @@ class Handler(object):
             return handler_runtime
 
     @property
-    def no_emittion_statement(self):
+    def no_derivative_events(self):
         """
         return True if the handler won't emit any event.
         """
-        return len(self.emittion_statement) == 0
+        return len(self.derivative_events) == 0
 
     def __eq__(self, obj):
         return isinstance(obj, Handler) \
             and self.event_cls == obj.event_cls \
             and self.func == obj.func \
-            and self.emittion_statement == obj.emittion_statement
+            and self.derivative_events == obj.derivative_events
 
     def __str__(self):
         return '%s.%s:%s.%s' % (self.event_cls.__module__,

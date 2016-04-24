@@ -56,3 +56,13 @@ class Mediator(object):
             if handler.event_cls not in self._event_handler_map:
                 self._event_handler_map[handler.event_cls] = []
             self._event_handler_map[handler.event_cls].append(handler)
+
+    def unregister_event_handler(self, *handlers):
+        """
+        Unregister event handlers.
+
+        :param handlers: one or more :class:`earo.handler.Handler`.
+        """
+        for handler in handlers:
+            if handler.event_cls in self._event_handler_map:
+                self._event_handler_map[handler.event_cls].remove(handler)

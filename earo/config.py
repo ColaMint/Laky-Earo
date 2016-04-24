@@ -27,9 +27,9 @@ class Config(object):
     __config__ = {
         'app_name': 'earo',
         'source_event_cls': (),
-        'processors_tag_regex': [],
-        'monitor_host': '0.0.0.0',
-        'monitor_port': 9527
+        'processors_tag_regex': ['.*'],
+        'dashboard_host': '0.0.0.0',
+        'dashboard_port': 9527
     }
     """
     The default configuration.
