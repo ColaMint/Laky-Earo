@@ -238,13 +238,14 @@ class Handler(object):
         try:
             handler_runtime.record_begin_time()
             results = self.func(context, event)
-            if not hasattr(results, '__iter__'):
-                results = (results, )
-            for result in results:
-                if isinstance(result, NoEmittion):
-                    handler_runtime.record_no_emittion(result)
-                elif isinstance(result, Emittion):
-                    handler_runtime.record_emittion(result)
+            if results is not None:
+                if not hasattr(results, '__iter__'):
+                    results = (results, )
+                for result in results:
+                    if isinstance(result, NoEmittion):
+                        handler_runtime.record_no_emittion(result)
+                    elif isinstance(result, Emittion):
+                        handler_runtime.record_emittion(result)
         except Exception as e:
             e.traceback = traceback.format_exc()
             handler_runtime.record_exception(e)

@@ -32,7 +32,7 @@ class TestDashboard(unittest.TestCase):
 
         self.dashboard = Dashboard(self.app)
         self.client = self.dashboard.flask_app.test_client()
-        # self.dashboard.flask_app.debug = True
+        self.dashboard.flask_app.debug = True
         # self.dashboard.run(daemon=False)
 
     def setUp(self):

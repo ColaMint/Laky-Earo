@@ -11,6 +11,7 @@ setup(
     author_email='463785757@qq.com',
     description='A microframework based on EDA for business logic development.',
     packages=['earo'],
+    package_data={'earo':['static/css/*.css', 'static/fonts/*', 'static/js/*.js', 'static/*.html']},
     include_package_data=True,
     zip_safe=False,
     platforms='any',
