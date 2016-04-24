@@ -1,4 +1,4 @@
-ro
+# Earo
 **Earo** is a microframework based on EDA for business logic development.
 
 # Installation
