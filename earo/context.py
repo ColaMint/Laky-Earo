@@ -17,6 +17,8 @@
 #   limitations under the License.                                            #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+from processor import ProcessFlow
+
 class Context(object):
     """
     :class:`Context` holds some key obejct during processing the event.
@@ -47,12 +49,13 @@ class Context(object):
         self.mediator = mediator
         self.source_event = source_event
         self.processor = processor
+        self.process_flow = ProcessFlow(mediator, type(source_event))
 
     def process(self):
         """
         Use `self.processor` to do the process and set `self.process_flow`.
         """
-        self.process_flow = self.processor.process(self)
+        self.processor.process(self)
 
     def find_event(self, event_cls):
         """

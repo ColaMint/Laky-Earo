@@ -38,8 +38,8 @@ class Field(object):
     def __init__(self, field_type, default=None):
 
         self.field_type = field_type
-        self.match(default)
         self.default = default
+        self.match(default)
 
     def match(self, value):
         """
@@ -47,7 +47,7 @@ class Field(object):
 
         :param value: The value to match.
         """
-        if not isinstance(value, self.field_type):
+        if value is not None and not isinstance(value, self.field_type):
             raise TypeError('expect %s, not %s' %
                             (self.field_type, type(value)))
 

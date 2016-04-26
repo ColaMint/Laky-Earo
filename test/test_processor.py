@@ -342,6 +342,36 @@ class TestProcessor(unittest.TestCase):
         self.assertGreaterEqual(processor.event_max_time_cost(EventA), 50)
         self.assertEqual(processor.event_max_time_cost(EventB), -1)
 
+    def test_find_event_in_handler(self):
+
+        mediator = Mediator()
+        processor = Processor('.+')
+
+        class EventA(Event):
+            id = Field(int)
+
+        class EventB(Event):
+            pass
+
+        def foo(context, event):
+            return Emittion(EventB())
+
+        def boo(context, event):
+            event_a = context.find_event(EventA)
+            self.assertIsNotNone(event_a)
+            self.assertEqual(event_a.id, 99)
+
+        handler_1 = Handler(EventA, foo, [EventB])
+        handler_2 = Handler(EventB, boo)
+
+        mediator.register_event_handler(
+            handler_1,
+            handler_2
+        )
+
+        context = Context(mediator, EventA(id=99), processor)
+        context.process()
+        self.assertEqual(processor.exception_count, 0)
 
 if __name__ == '__main__':
     unittest.main()

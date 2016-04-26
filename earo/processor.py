@@ -197,11 +197,12 @@ class Processor(object):
         :param context: a :class:`earo.context.Context`.
         """
 
-        process_flow = ProcessFlow(context.mediator, type(context.source_event))
+        process_flow = context.process_flow
 
         def process_node_recursively(node, event):
             if node.type == NodeType.Event:
                 node.active_item = event
+                process_flow.build_emittion_index(node)
                 for handler_node in node.child_nodes:
                     process_node_recursively(handler_node, event)
             elif node.type == NodeType.Handler:
@@ -215,6 +216,7 @@ class Processor(object):
                 process_flow.end_time = handler_runtime.end_time
 
                 node.active_item = handler_runtime
+                process_flow.build_emittion_index(node)
                 for emitted_event in handler_runtime.emittions:
                     event_cls = type(emitted_event)
                     found = False
@@ -255,7 +257,6 @@ class Processor(object):
                 self._event_max_time_cost[
                     source_event_cls] = process_flow.time_cost
 
-        process_flow.after_process()
         return process_flow
 
     @property
@@ -394,35 +395,21 @@ class ProcessFlow(object):
 
         self.root = build_node_recursively(source_event_cls, NodeType.Event)
 
-    def after_process(self):
+    def build_emittion_index(self, node):
         """
-        Called by :class:`Processor` after process.
+        Called by :class:`Processor` to build self.`_emittions` and self.`_no_emittions`.
         """
-        self._build_emittion_index()
-
-    def _build_emittion_index(self):
-        """
-        Build self.`_emittions` and self.`_no_emittions`.
-        """
-
-        def build_emittion_index_recursively(node):
-            if node.type == NodeType.Event:
-                event = node.active_item
-                event_cls = type(event)
-                self._emittions[event_cls] = event
-                for handler_node in node.child_nodes:
-                    build_emittion_index_recursively(handler_node)
-            elif node.type == NodeType.Handler:
-                if node.active:
-                    handler_runtime = node.active_item
-                    for event_cls, msg in handler_runtime.no_emittions.iteritems():
-                        self._no_emittions[event_cls] = msg
-                    for event_node in node.child_nodes:
-                        build_emittion_index_recursively(event_node)
-            else:
-                raise TypeError('Unknown NodeType: `%s`.' % (node.type,))
-
-        build_emittion_index_recursively(self.root)
+        if node.type == NodeType.Event:
+            event = node.active_item
+            event_cls = type(event)
+            self._emittions[event_cls] = event
+        elif node.type == NodeType.Handler:
+            if node.active:
+                handler_runtime = node.active_item
+                for event_cls, msg in handler_runtime.no_emittions.iteritems():
+                    self._no_emittions[event_cls] = msg
+        else:
+            raise TypeError('Unknown NodeType: `%s`.' % (node.type,))
 
     @property
     def active(self):
