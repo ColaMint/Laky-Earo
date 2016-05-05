@@ -50,10 +50,16 @@ function color_to_class(color) {
     return color_class;
 }
 
+function transfer_string(str) {
+    str = str.replace(/\r\n/g, "<br>");
+    str = str.replace(/\n/g, "<br>");
+    return str;
+}
+
 function fill_content(element, content) {
     switch(content.content_type) {
     case ContentType.Text:
-        element.text(content.text);
+        element.html(transfer_string(content.text));
         break;
     case ContentType.Table:
         var dom_table = $("<table class=\"table\"></table>");

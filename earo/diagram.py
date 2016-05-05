@@ -178,9 +178,16 @@ class NodePanel(Panel):
 
     def _parse_event_node(self, process_flow, event_node):
         event_cls = event_node.inactive_item
-        self.title = TextContent('%s.%s' % (
-            event_cls.__module__,
-            event_cls.__name__))
+        event_description = event_cls.description()
+        if event_description:
+            self.title = TextContent('%s.%s\n%s' % (
+                event_cls.__module__,
+                event_cls.__name__,
+                event_description))
+        else:
+            self.title = TextContent('%s.%s' % (
+                event_cls.__module__,
+                event_cls.__name__))
 
         if process_flow.active:
             if event_node.active:
@@ -218,9 +225,16 @@ class NodePanel(Panel):
 
     def _parse_handler_node(self, process_flow, handler_node):
         handler = handler_node.inactive_item
-        self.title = TextContent('%s.%s' % (
-            handler.func.__module__,
-            handler.func.__name__))
+        handler_description = handler.description
+        if handler_description:
+            self.title = TextContent('%s.%s\n%s' % (
+                handler.func.__module__,
+                handler.func.__name__,
+                handler_description))
+        else:
+            self.title = TextContent('%s.%s' % (
+                handler.func.__module__,
+                handler.func.__name__))
 
         if process_flow.active:
             if handler_node.active:
@@ -233,7 +247,7 @@ class NodePanel(Panel):
                          handler_runtime.time_cost))
                 else:
                     self.color = Color.Red
-                    self.body = TextContent(str(handler_runtime.exception))
+                    self.body = TextContent(handler_runtime.exception.traceback)
             else:
                 self.color = Color.Grey
                 if handler.no_derivative_events:

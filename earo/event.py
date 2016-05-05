@@ -73,6 +73,7 @@ class EventMetaClass(type):
         new_attrs['__fields__'] = fields
         new_attrs['__mappings__'] = mappings
         new_attrs['__params__'] = params
+        new_attrs['__actual_params__'] = None
         new_attrs['__tag__'] = attrs['__tag__'] \
             if '__tag__' in attrs else ''
         new_attrs['__description__'] = attrs['__description__'] \
@@ -88,21 +89,24 @@ class Event(object):
     __metaclass__ = EventMetaClass
 
     def __init__(self, **kwargs):
+        self.__actual_params__ = copy.deepcopy(self.__params__)
         for k, v in kwargs.iteritems():
             self.__setattr__(k, v)
 
     def __getattr__(self, key):
-        if key in self.__params__:
-            return self.__params__[key]
+        if key in self.__actual_params__:
+            return self.__actual_params__[key]
         else:
             raise AttributeError(
                 "%s has no param `%s`" %
                 (type(self), key))
 
     def __setattr__(self, key, value):
-        if key in self.__params__:
+        if key in ['__actual_params__']:
+            return super(Event, self).__setattr__(key, value)
+        if key in self.__actual_params__:
             self.__mappings__[key].match(value)
-            self.__params__[key] = value
+            self.__actual_params__[key] = value
         else:
             raise AttributeError(
                 "%s has no param `%s`" %
@@ -113,7 +117,7 @@ class Event(object):
         """
         A `dict` which is a deep copy of the event's params.
         """
-        return copy.deepcopy(self.__params__)
+        return copy.deepcopy(self.__actual_params__)
 
     @classmethod
     def tag(cls):

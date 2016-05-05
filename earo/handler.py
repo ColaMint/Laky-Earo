@@ -205,11 +205,17 @@ class Handler(object):
     :class:`earo.processor.ProcessFlow`.
     """
 
-    def __init__(self, event_cls, func, derivative_events=[]):
+    description = None
+    """
+    The description of the handler.
+    """
+
+    def __init__(self, event_cls, func, derivative_events=[], description=''):
 
         self.event_cls = event_cls
         self.func = func
         self.derivative_events = derivative_events
+        self.description = description
         self._validate_func(func)
 
     def _validate_func(self, handle_func):

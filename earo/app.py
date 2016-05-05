@@ -81,17 +81,22 @@ class App(object):
             self.processors.append(
                 Processor(processor_tag_regex))
 
-    def handler(self, event_cls, derivative_events=[]):
+    def handler(self, event_cls, derivative_events=[], description=''):
         """
         An decorator to register the function as an event handlers.
         The function's param list must be `(context, event)`.
 
-        :param event_cls: The class of event to listen to.
-        :param emittion_statement: a list of classes of events that may be emitted
+        :param event_cls: the class of event to listen to.
+        :param derivative_events: a list of classes of events that may be emitted
+        :param description: the description of the handler.
         by the handler.
         """
         def decorator(func):
-            handler = Handler(event_cls, func, derivative_events)
+            handler = Handler(
+                event_cls,
+                func,
+                derivative_events=derivative_events,
+                description=description)
             self.mediator.register_event_handler(handler)
             return func
         return decorator
@@ -102,7 +107,7 @@ class App(object):
         The :class:`earo.processor.ProcessFlow` is processed by a processor in
         `self.processors` whose `tag_regex` match `event.tag`.
 
-        :param event: The event to emit.
+        :param event: the event to emit.
         """
         event_cls = type(event)
 

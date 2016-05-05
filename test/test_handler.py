@@ -103,9 +103,20 @@ class TestHandler(unittest.TestCase):
         def foo(context, event):
             return NoEmittion(BEvent, 'test reason')
 
-        handler = Handler(AEvent, foo, BEvent)
+        handler = Handler(AEvent, foo, derivative_events=[BEvent])
         handler_runtime = handler.handle(None, AEvent())
         self.assertEqual(handler_runtime.why_no_emittion(BEvent), 'test reason')
+
+    def test_description(self):
+
+        class AEvent(Event):
+            pass
+
+        def foo(context, event):
+            return NoEmittion(BEvent, 'test reason')
+
+        handler = Handler(AEvent, foo, description='test handler description')
+        self.assertEqual(handler.description, 'test handler description')
 
 if __name__ == '__main__':
     unittest.main()
